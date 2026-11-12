@@ -72,8 +72,8 @@ export function DisbursementDashboard(){
             <button className="ds-icon-btn" onClick={()=>{setDate('');setReload(v=>v+1);}} title="รีเฟรชข้อมูลล่าสุด"><RefreshCw size={15}/> รีเฟรช</button></div>
           <div className="ds-export-controls">
             <button onClick={csv} disabled={!report}><FileSpreadsheet size={15}/> ส่งออก CSV</button>
-            <button className="ds-cta-outline" onClick={()=>print('summary')} disabled={!report}><FileText size={15}/> PDF สรุป 1 หน้า</button>
-            <button className="ds-cta" onClick={()=>print('full')} disabled={!report}><Download size={15}/> PDF รายละเอียด</button>
+            <button className="ds-cta-outline" onClick={()=>print('summary')} disabled={!report}><FileText size={15}/> PDF สรุป A4 แนวตั้ง</button>
+            <button className="ds-cta" onClick={()=>print('full')} disabled={!report}><Download size={15}/> PDF รายละเอียด A4 แนวตั้ง</button>
           </div>
         </div>
         {loading?<section className="ds-empty"><BarChart3 size={30}/><h2>กำลังโหลดข้อมูล...</h2></section>:error?<section className="ds-empty ds-error"><h2>ไม่สามารถแสดงรายงานได้</h2><p>{error}</p></section>:!report?<section className="ds-empty"><BarChart3 size={32}/><h2>ยังไม่มีข้อมูลสำหรับช่วงเวลาที่เลือก</h2><p>กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่</p></section>:<>

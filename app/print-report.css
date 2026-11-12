@@ -1,11 +1,13 @@
 /* A4 executive report — dedicated print layout, not the browser dashboard */
 .pr-report{display:none}
 @media print{
-  @page{size:A4 portrait;margin:0}
+  /* Dedicated portrait page, independent from any CSS loaded when navigating from /admin. */
+@page{size:A4 portrait;margin:0}
+@page budget-executive-portrait{size:A4 portrait;margin:0}
   html,body{margin:0!important;padding:0!important;background:#fff!important}
   .ds-screen{display:none!important}
   .pr-report{display:block!important;color:#1b2d3f;font-family:NotoThai,'Noto Sans Thai',sans-serif!important}
-  .pr-page{width:210mm;height:297mm;position:relative;overflow:hidden;box-sizing:border-box;padding:12mm 13mm 15mm;margin:0;break-after:page;page-break-after:always;background:#fcfaf7!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
+  .pr-page{page:budget-executive-portrait;width:210mm;height:296mm;position:relative;overflow:hidden;box-sizing:border-box;padding:12mm 13mm 15mm;margin:0;break-after:page;page-break-after:always;background:#fcfaf7!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
   .pr-page:last-child{break-after:auto;page-break-after:auto}
   .pr-summary-only .pr-full-only{display:none!important}
   .pr-page h1,.pr-page h2,.pr-page p{margin:0}
