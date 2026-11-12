@@ -4,11 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
 import { moneyTH, percentTH } from '@/lib/disbursement';
-import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search } from 'lucide-react';
+import { BarChart3, CalendarDays, FileSpreadsheet, LockKeyhole, RefreshCw, Search } from 'lucide-react';
 
 import { ProjectHierarchy } from './ProjectHierarchy';
 
-type PrintMode = 'summary' | 'full';
 const thaiDate = (value:string) => {
   const d = new Date(value+'T12:00:00+07:00');
   return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(d);
@@ -31,7 +30,7 @@ export function DisbursementDashboard(){
   const [view,setView] = useState<'projects'|'activities'>('projects');
   const [date,setDate] = useState('');
   const [reload,setReload] = useState(0);
-  const reportUrl=(mode:PrintMode)=>'/report?mode='+mode+(date?'&date='+encodeURIComponent(date):'');
+  const reportUrl=(mode:'summary'|'full')=>'/report?mode='+mode+(date?'&date='+encodeURIComponent(date):'');
   useEffect(()=>{
     let live = true;
     setLoading(true);setError('');
@@ -76,9 +75,13 @@ export function DisbursementDashboard(){
             {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
             <button className="ds-icon-btn" onClick={()=>{setDate('');setReload(v=>v+1);}} title="รีเฟรชข้อมูลล่าสุด"><RefreshCw size={15}/> แสดงข้อมูลล่าสุด</button></div>
           <div className="ds-export-controls">
-            <button onClick={csv} disabled={!report}><FileSpreadsheet size={15}/> ส่งออก CSV</button>
-            {report?<Link className="ds-cta-outline ds-report-link" href={reportUrl('summary')}><FileText size={17}/> ดูรายงานสรุป / PDF</Link>:<button disabled>ดูรายงานสรุป / PDF</button>}
-            {report?<Link className="ds-cta ds-report-link" href={reportUrl('full')}><Download size={17}/> ดูรายงานรายละเอียด / PDF</Link>:<button disabled>ดูรายงานรายละเอียด / PDF</button>}
+            <button type="button" onClick={csv} disabled={!report}><FileSpreadsheet size={17}/> ส่งออกข้อมูล CSV</button>
+            {report
+              ? <Link className="ds-cta ds-report-link" href={reportUrl('summary')}>อ่านรายงานสรุป</Link>
+              : <button disabled>อ่านรายงานสรุป</button>}
+            {report
+              ? <Link className="ds-cta-outline ds-report-link" href={reportUrl('full')}>อ่านรายงานรายละเอียด</Link>
+              : <button disabled>อ่านรายงานรายละเอียด</button>}
           </div>
         </div>
         {loading?<section className="ds-empty"><BarChart3 size={30}/><h2>กำลังโหลดข้อมูล...</h2></section>:error?<section className="ds-empty ds-error"><h2>ไม่สามารถแสดงรายงานได้</h2><p>{error}</p></section>:!report?<section className="ds-empty"><BarChart3 size={32}/><h2>ยังไม่มีข้อมูลสำหรับช่วงเวลาที่เลือก</h2><p>กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่</p></section>:<>

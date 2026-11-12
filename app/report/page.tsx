@@ -10,15 +10,19 @@ export default async function ReportPage({searchParams}:{searchParams:Promise<{m
  const mode=params.mode==='full'?'full':'summary';
  let cutoff:string;
  try{cutoff=requestedCutoff(params.date??null);}catch{return <main className="mr-page"><h1>วันที่ไม่ถูกต้อง</h1><Link href="/">กลับหน้า Dashboard</Link></main>;}
- const {report,preview}=await getPublicReport(cutoff);
+ const {report}=await getPublicReport(cutoff);
  if(!report)return <main className="mr-page"><h1>ไม่พบข้อมูลสำหรับวันที่เลือก</h1><Link href="/">กลับหน้า Dashboard</Link></main>;
- const search=new URLSearchParams({mode});
- if(params.date)search.set('date',cutoff);
- const base='/api/pdf?'+search.toString();
+ const dateSuffix=params.date?'&date='+encodeURIComponent(cutoff):'';
  const actualProjects=report.projects.filter(x=>x.code!=='RESERVE');
  const paidProjects=actualProjects.filter(x=>x.disbursed>0);
  return <main className="mr-page">
-   <header className="mr-top"><div><Link className="mr-back" href="/">← กลับหน้า Dashboard</Link><span>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570</span></div><nav><Link href={base} target="_blank" rel="noopener noreferrer">เปิด PDF</Link><Link className="mr-download" href={base+'&download=1'}>ดาวน์โหลด PDF</Link></nav></header>
+   <header className="mr-top">
+     <div><Link className="mr-back" href="/">← กลับหน้ารายงานหลัก</Link><span>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570</span></div>
+     <nav aria-label="เลือกรูปแบบรายงาน">
+       <Link className={mode==='summary'?'mr-current':''} href={'/report?mode=summary'+dateSuffix}>สรุปภาพรวม</Link>
+       <Link className={mode==='full'?'mr-current':''} href={'/report?mode=full'+dateSuffix}>รายละเอียดโครงการ</Link>
+     </nav>
+   </header>
    <article className="mr-paper">
      <section className="mr-hero">
        <span className="mr-pill">รายงานผลการเบิกจ่าย</span>
@@ -43,7 +47,10 @@ export default async function ReportPage({searchParams}:{searchParams:Promise<{m
        <section className="mr-section"><h2>ผลการเบิกจ่ายรายกิจกรรมย่อย</h2>{report.activities.map((a,i)=><div key={a.code??i} className="mr-data-card"><strong>{a.activity??a.name??'กิจกรรม'}</strong><small>{a.agency??'ไม่ระบุหน่วยดำเนินการ'}</small><div><span>งบประมาณ <b>{moneyTH(a.budget)}</b></span><span>เบิกจ่าย <b>{moneyTH(a.disbursed)}</b></span><span>คงเหลือ <b>{moneyTH(a.remaining)}</b></span></div></div>)}</section>
      </>}
    </article>
-   <div className="mr-bottom"><Link href={base} target="_blank" rel="noopener noreferrer">เปิด PDF</Link><Link href={base+'&download=1'} className="mr-download">ดาวน์โหลด PDF</Link><Link href="/">กลับ Dashboard</Link></div>
-   <p className="mr-help">หากดู PDF ผ่าน Messenger ไม่ได้ ให้เปิดเมนู ••• ของ Messenger แล้วเลือกเปิดใน Safari หรือ Chrome หรืออ่านรายงานบนหน้านี้ได้ทันที</p>
+   <div className="mr-bottom">
+     <Link href={'/report?mode=summary'+dateSuffix}>รายงานสรุป</Link>
+     <Link href={'/report?mode=full'+dateSuffix}>รายงานรายละเอียด</Link>
+     <Link href="/">กลับหน้าหลัก</Link>
+   </div>
  </main>;
 }

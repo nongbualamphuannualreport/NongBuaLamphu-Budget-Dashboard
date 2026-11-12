@@ -73,3 +73,46 @@
  .mr-bottom a:last-child{grid-column:1/-1}
 }
 @media print{.mr-top,.mr-bottom,.mr-help{display:none!important}.mr-page{padding:0;background:white}.mr-paper{box-shadow:none;border:0}}
+
+
+/* Readable online report on small screens; avoids the unstable mobile PDF renderer */
+.mr-page{overflow-x:clip}
+.mr-paper,.mr-hero,.mr-date,.mr-section,.mr-stat-grid,.mr-status,.mr-data-card{min-width:0}
+.mr-top nav .mr-current,.mr-bottom .mr-current{background:#187455;border-color:#187455;color:white}
+@media(max-width:600px){
+ .mr-page{padding:10px 12px 32px;font-size:15px}
+ .mr-top nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .mr-top nav a{font-size:13px;line-height:1.4;padding:9px 8px;white-space:normal}
+ .mr-hero{padding:20px 17px}
+ .mr-hero h1{font-size:22px;line-height:1.43;overflow-wrap:anywhere}
+ .mr-hero>strong{font-size:clamp(29px,8vw,39px);letter-spacing:-.5px;line-height:1.4;overflow-wrap:normal}
+ .mr-date{padding:14px 16px;line-height:1.6}
+ .mr-stat-grid{display:grid;grid-template-columns:minmax(0,1fr);margin:0 16px 18px;gap:9px}
+ .mr-stat-grid>div,.mr-stat-grid>div:last-child{grid-column:auto;padding:13px 15px}
+ .mr-stat-grid span{font-size:13px}
+ .mr-stat-grid strong{font-size:clamp(23px,7vw,29px);white-space:normal;overflow-wrap:anywhere}
+ .mr-section,.mr-status{margin:17px 16px}
+ .mr-section h2{font-size:18px;line-height:1.45}
+ .mr-status{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:10px}
+ .mr-status>strong{font-size:14px}
+ .mr-status>div{padding:8px 5px;min-width:0}
+ .mr-status b{font-size:21px}
+ .mr-status span{font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+ .mr-summary-row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:5px 10px}
+ .mr-summary-row>span{grid-row:span 2;align-self:start}
+ .mr-summary-row>strong{font-size:14px;min-width:0}
+ .mr-summary-row>b{width:auto;padding:0;grid-column:2;font-size:15px}
+ .mr-data-card{padding:12px 13px}
+ .mr-data-card>strong{font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+ .mr-data-card>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .mr-data-card>div span{font-size:12px;min-width:0}
+ .mr-data-card>div b{font-size:15px;overflow-wrap:anywhere}
+ .mr-bottom{display:grid;grid-template-columns:1fr}
+ .mr-bottom a:last-child{grid-column:auto}
+}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ .mr-page{background:white;padding:0}
+ .mr-paper{border:0;border-radius:0}
+ .mr-data-card,.mr-status,.mr-stat-grid>div{break-inside:avoid;page-break-inside:avoid}
+}
