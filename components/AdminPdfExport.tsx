@@ -106,7 +106,7 @@ export function AdminPdfExport({report,mode,enabled}:Props){
   {!enabled&&<p className="mon-error">กรุณารอข้อมูลครบถ้วนก่อนสร้างรายงาน</p>}
   {status&&<p role="status" className="apdf-status">{status}</p>}
   <div className="apdf-capture" ref={sheets} aria-hidden="true">
-   <PageFrame page={1} total={1} created={created} asOf={report.asOf}>
+   <PageFrame page={1} total={generating==='full'?totalPages:1} created={created} asOf={report.asOf}>
     <header className="apdf-hero">
      <span className="apdf-pill">รายงานผลการเบิกจ่ายงบประมาณ</span>
      <h1>จังหวัดหนองบัวลำภู</h1><h2>ประจำปีงบประมาณ พ.ศ. 2570</h2>
@@ -139,7 +139,10 @@ export function AdminPdfExport({report,mode,enabled}:Props){
         <h2>ผลการเบิกจ่ายงบประมาณจำแนกตามโครงการและกิจกรรมย่อย</h2>
         <p>จังหวัดหนองบัวลำภู · ประจำปีงบประมาณ พ.ศ. 2570 · ข้อมูล ณ {thaiDate(report.asOf)}</p>
       </header>}
-      {idx===0&&<div className="apdf-detail-columns"><span>โครงการ / กิจกรรมย่อย</span><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือ</span></div>}
+      {idx===0&&<div className="apdf-detail-columns">
+        <span>โครงการ / กิจกรรมย่อย</span>
+        <div className="apdf-detail-figures"><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือ</span></div>
+      </div>}
       <div className="apdf-detail-list">
         {items.map((item,i)=>item.kind==='project'?
           <section className="apdf-project-line" key={'project-'+item.project.code}>

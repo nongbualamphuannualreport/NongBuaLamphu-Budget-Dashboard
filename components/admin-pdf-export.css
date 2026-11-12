@@ -76,7 +76,6 @@
   margin:5px 0 9px;padding:9px 10px;background:#edf3f2;
   border-radius:6px;font-size:11px;color:#496674;font-weight:700;
 }
-.apdf-detail-columns>span:nth-child(n+2){display:none}
 .apdf-detail-columns>span:first-child{font-size:11px}
 .apdf-detail-list{display:block}
 .apdf-project-line{
@@ -129,3 +128,7 @@
 }
 .apdf-detail-grand-total>strong{font-size:12px}
 .apdf-detail-grand-total .apdf-detail-figures b{font-size:12px}
+
+.apdf-detail-columns .apdf-detail-figures>span{
+  color:#496674;font-size:10px;line-height:1.35;white-space:normal;text-align:right;
+}
