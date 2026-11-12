@@ -10,6 +10,7 @@
   .pr-page{page:budget-executive-portrait;width:210mm;height:296mm;position:relative;overflow:hidden;box-sizing:border-box;padding:12mm 13mm 15mm;margin:0;break-after:page;page-break-after:always;background:#fcfaf7!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
   .pr-page:last-child{break-after:auto;page-break-after:auto}
   .pr-summary-only .pr-full-only{display:none!important}
+  .pr-summary-only .pr-cover{break-after:auto!important;page-break-after:auto!important}
   .pr-page h1,.pr-page h2,.pr-page p{margin:0}
   .pr-hero{background:#1c2d49!important;color:#fff!important;position:relative;min-height:64mm;padding:8mm 9mm 7mm;overflow:hidden;border-radius:0 0 6mm 6mm}
   .pr-hero-ring{position:absolute;border:1.2mm solid #f0ad7b!important;border-radius:50%;width:81mm;height:81mm;right:-28mm;top:-28mm;opacity:.75}
@@ -22,6 +23,7 @@
   .pr-hero p{font-size:8pt;color:#dbe3ee!important;margin-top:2mm}
   .pr-date-line{display:flex;justify-content:space-between;gap:5mm;margin:4mm 0 3mm;font-size:8pt;color:#466178}
   .pr-date-line span{font-size:7.4pt}
+  .pr-draft-status{display:inline-block;margin-bottom:2mm;border:0.2mm solid #dfbc9e;background:#fff0e1!important;border-radius:2mm;padding:1mm 3mm;color:#97603b!important;font-size:7pt;font-weight:700}
   .pr-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm}
   .pr-stat{border:0.3mm solid #e6e4e1;border-radius:3mm;background:white!important;padding:3.5mm 4mm;min-height:27mm}
   .pr-stat span,.pr-stat small{display:block;color:#6d7480!important;font-size:7.7pt}
@@ -54,7 +56,7 @@
   .pr-footer{position:absolute;bottom:7mm;left:13mm;right:13mm;display:flex;justify-content:space-between;gap:6mm;border-top:0.3mm solid #dce3e8;padding-top:2mm;font-size:6.8pt;color:#748290!important}
   .pr-detail-page{padding-top:13mm}
   .pr-page-title{display:flex;justify-content:space-between;align-items:start;border-bottom:0.8mm solid #d68f60;padding-bottom:4mm;margin-bottom:5mm}
-  .pr-page-title .pr-eyebrow{font-size:7pt;color:#bc7650!important;letter-spacing:0.7pt}
+
   .pr-page-title h2{font-size:18pt;margin-top:1mm}
   .pr-page-title p{font-size:8pt;color:#708192!important;margin-top:1mm}
   .pr-page-number{font-size:24pt;color:#dfc4b0!important;font-weight:700}

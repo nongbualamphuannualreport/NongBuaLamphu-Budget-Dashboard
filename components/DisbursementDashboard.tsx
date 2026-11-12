@@ -14,6 +14,11 @@ const thaiDate = (value:string) => {
   return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(d);
 };
 const pct = (a:number,b:number) => Math.max(0,Math.min(100,b?a/b*100:0));
+const bangkokToday = () => {
+  const parts = new Intl.DateTimeFormat('en-GB', {day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Bangkok'}).formatToParts(new Date());
+  const v=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+  return `${v.year}-${v.month}-${v.day}`;
+};
 function Metric({label,value,sub,tone}:{label:string,value:string,sub:string,tone?:'accent'|'blue'}){
   return <article className={`ds-kpi ${tone?'ds-kpi-'+tone:''}`}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>;
 }
@@ -27,6 +32,7 @@ export function DisbursementDashboard(){
   const [date,setDate] = useState('');
   const [reload,setReload] = useState(0);
   const [printMode,setPrintMode] = useState<PrintMode>('summary');
+  const [printedAt,setPrintedAt] = useState('');
   useEffect(()=>{
     let live = true;
     setLoading(true);setError('');
@@ -41,7 +47,7 @@ export function DisbursementDashboard(){
   ),[report,view,search]);
   const totalProjects=report?.projects.filter(p=>p.code!=='RESERVE').length??0;
   const active=report?.projects.filter(p=>p.code!=='RESERVE'&&p.disbursed>0).length??0;
-  function print(scope:PrintMode){if(!report)return;flushSync(()=>setPrintMode(scope));window.print();}
+  function print(scope:PrintMode){if(!report)return;flushSync(()=>{setPrintMode(scope);setPrintedAt(bangkokToday());});window.print();}
   function csv(){
     if(!report)return;
     const rows=[['ประเภท','โครงการ/กิจกรรม','หน่วยงาน','งบประมาณ','เบิกจ่าย','คงเหลือ','ร้อยละ'],
@@ -102,6 +108,6 @@ export function DisbursementDashboard(){
         <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>Budget Monitor v2.6</span></footer>
       </div>
     </div>
-    {report&&<ExecutivePrintReport report={report} preview={preview} mode={printMode}/>}
+    {report&&<ExecutivePrintReport report={report} preview={preview} mode={printMode} printedAt={printedAt}/>}
   </main>;
 }
