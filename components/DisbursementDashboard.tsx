@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { flushSync } from 'react-dom';
+
 import Link from 'next/link';
 import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
 import { moneyTH, percentTH } from '@/lib/disbursement';
 import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search, ShieldCheck } from 'lucide-react';
-import { ExecutivePrintReport } from './ExecutivePrintReport';
+
 import { ProjectHierarchy } from './ProjectHierarchy';
 
 type PrintMode = 'summary' | 'full';
@@ -31,8 +31,7 @@ export function DisbursementDashboard(){
   const [view,setView] = useState<'projects'|'activities'>('projects');
   const [date,setDate] = useState('');
   const [reload,setReload] = useState(0);
-  const [printMode,setPrintMode] = useState<PrintMode>('summary');
-  const [printedAt,setPrintedAt] = useState('');
+  const reportUrl=(mode:PrintMode)=>'/report?mode='+mode+(date?'&date='+encodeURIComponent(date):'');
   useEffect(()=>{
     let live = true;
     setLoading(true);setError('');
@@ -47,7 +46,7 @@ export function DisbursementDashboard(){
   ),[report,view,search]);
   const totalProjects=report?.projects.filter(p=>p.code!=='RESERVE').length??0;
   const active=report?.projects.filter(p=>p.code!=='RESERVE'&&p.disbursed>0).length??0;
-  function print(scope:PrintMode){if(!report)return;flushSync(()=>{setPrintMode(scope);setPrintedAt(bangkokToday());});window.print();}
+
   function csv(){
     if(!report)return;
     const rows=[['ประเภท','โครงการ/กิจกรรม','หน่วยงาน','งบประมาณ','เบิกจ่าย','คงเหลือ','ร้อยละ'],
@@ -78,8 +77,8 @@ export function DisbursementDashboard(){
             <button className="ds-icon-btn" onClick={()=>{setDate('');setReload(v=>v+1);}} title="รีเฟรชข้อมูลล่าสุด"><RefreshCw size={15}/> แสดงข้อมูลล่าสุด</button></div>
           <div className="ds-export-controls">
             <button onClick={csv} disabled={!report}><FileSpreadsheet size={15}/> ส่งออก CSV</button>
-            <button className="ds-cta-outline" onClick={()=>print('summary')} disabled={!report}><FileText size={15}/> PDF สรุป A4 แนวตั้ง</button>
-            <button className="ds-cta" onClick={()=>print('full')} disabled={!report}><Download size={15}/> PDF รายละเอียด A4 แนวตั้ง</button>
+            {report?<Link className="ds-cta-outline ds-report-link" href={reportUrl('summary')}><FileText size={17}/> ดูรายงานสรุป / PDF</Link>:<button disabled>ดูรายงานสรุป / PDF</button>}
+            {report?<Link className="ds-cta ds-report-link" href={reportUrl('full')}><Download size={17}/> ดูรายงานรายละเอียด / PDF</Link>:<button disabled>ดูรายงานรายละเอียด / PDF</button>}
           </div>
         </div>
         {loading?<section className="ds-empty"><BarChart3 size={30}/><h2>กำลังโหลดข้อมูล...</h2></section>:error?<section className="ds-empty ds-error"><h2>ไม่สามารถแสดงรายงานได้</h2><p>{error}</p></section>:!report?<section className="ds-empty"><BarChart3 size={32}/><h2>ยังไม่มีข้อมูลสำหรับช่วงเวลาที่เลือก</h2><p>กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่</p></section>:<>
@@ -108,6 +107,5 @@ export function DisbursementDashboard(){
         <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>ข้อมูลจำแนกตามโครงการและกิจกรรม</span></footer>
       </div>
     </div>
-    {report&&<ExecutivePrintReport report={report} preview={preview} mode={printMode} printedAt={printedAt}/>}
   </main>;
 }

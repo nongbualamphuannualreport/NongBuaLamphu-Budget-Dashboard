@@ -180,3 +180,64 @@
 .ds-table td:nth-child(6)::before{content:'ร้อยละเบิกจ่าย';display:block;font-size:12px;color:#738990}
 .ds-percent{display:block;margin:3px 0 6px;width:100%}
 }
+
+/* v3.0 compact and legible mobile dashboard; Messenger in-app browser compatible */
+.ds-report-link{display:inline-flex;gap:8px;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:1px solid #d9e5df;border-radius:9px;padding:11px 14px;min-height:46px;line-height:1.5;white-space:normal;text-align:center}
+.ds-report-link.ds-cta{color:#fff;background:#1f6f59;border-color:#1f6f59}
+.ds-report-link.ds-cta-outline{background:#f7e9dc;border-color:#efd5c2;color:#915a39}
+.ds-report-link:focus-visible{outline:3px solid #d59b6c;outline-offset:2px}
+@media(max-width:760px){
+ .ds-top{min-height:0;padding:8px 0}
+ .ds-top-inner{min-height:58px;gap:9px;align-items:center}
+ .ds-mark{width:35px;height:35px;flex:0 0 35px;font-size:14px;border-radius:9px}
+ .ds-brand{gap:9px;min-width:0;flex:1}
+ .ds-brand>div{min-width:0}
+ .ds-brand strong{font-size:13px;line-height:1.38;max-width:210px}
+ .ds-brand small{font-size:10px;line-height:1.45;max-width:220px}
+ .ds-top nav{flex:0 0 auto}
+ .ds-top nav a{font-size:0;padding:8px;border:1px solid #e1e9e3;border-radius:9px;min-height:42px;min-width:42px;justify-content:center}
+ .ds-top nav a svg{width:21px;height:21px;flex:none}
+ .ds-content{padding-top:14px}
+ .ds-hero{padding:20px 17px;gap:14px;border-radius:15px}
+ .ds-kicker{font-size:10px;letter-spacing:.3px;line-height:1.45}
+ .ds-hero h1{font-size:clamp(21px,5.3vw,27px);line-height:1.45;margin:11px 0 8px}
+ .ds-hero p{font-size:13px;line-height:1.6;max-width:100%}
+ .ds-hero-meta{margin-top:13px;gap:8px 12px;font-size:12px}
+ .ds-hero-total{max-width:100%;padding:13px 15px;border-radius:12px}
+ .ds-hero-total>span{font-size:12px}
+ .ds-hero-total strong{font-size:clamp(27px,7vw,34px);line-height:1.25;margin:4px 0}
+ .ds-hero-total small{font-size:12px}
+ .ds-status-note{margin-top:11px;padding:12px;border-radius:10px}
+ .ds-status-note strong{font-size:13px}
+ .ds-status-note p{font-size:12px}
+ .ds-status-note a{min-height:38px;font-size:12px;padding:8px 11px}
+ .ds-toolbar{margin:13px 0 13px;gap:10px}
+ .ds-view-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .ds-view-controls label{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:12px;min-width:0}
+ .ds-view-controls label input,.ds-view-controls label select{width:100%;min-width:0;font-size:14px}
+ .ds-view-controls .ds-icon-btn{width:100%;height:44px;justify-content:center;min-width:0;font-size:12px}
+ .ds-export-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .ds-export-controls button,.ds-export-controls .ds-report-link{width:100%;min-width:0;min-height:48px;font-size:13px;line-height:1.35;padding:9px 8px}
+ .ds-export-controls .ds-cta{grid-column:1/-1}
+ .ds-kpis{gap:9px}
+ .ds-kpi{padding:11px 12px;min-width:0;border-radius:11px}
+ .ds-kpi span{font-size:12px;line-height:1.35}
+ .ds-kpi strong{font-size:clamp(18px,4.9vw,24px);margin:5px 0}
+ .ds-kpi small{font-size:11px}
+ .ds-analysis-grid{gap:11px;margin-top:11px}
+ .ds-panel{padding:16px 14px;border-radius:12px}
+ .ds-overline{font-size:10px;letter-spacing:.3px}
+ .ds-panel h2{font-size:19px}
+ .ds-progress>strong{font-size:33px;margin:10px 0}
+ .ds-progress-caption span{font-size:12px}
+ .ds-overview-numbers{gap:6px}
+ .ds-overview-numbers div{padding:9px 5px}
+ .ds-overview-numbers strong{font-size:22px}
+ .ds-overview-numbers span{font-size:11px}
+}
+@media(max-width:380px){
+ .ds-kpi strong{font-size:17px}
+ .ds-export-controls{grid-template-columns:1fr}
+ .ds-export-controls .ds-cta{grid-column:auto}
+ .ds-view-controls{grid-template-columns:1fr}
+}
