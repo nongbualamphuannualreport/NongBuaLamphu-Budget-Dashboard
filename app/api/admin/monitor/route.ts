@@ -44,7 +44,7 @@ export async function POST(req:NextRequest){
     if(ar.error||er.error)return bad(ar.error?.message??er.error?.message??'อ่านข้อมูลไม่ได้',500);
     if(!(ar.data?.length))return bad('ยังไม่ได้นำเข้าข้อมูลตั้งต้น',409);
     if((er.data?.length??0)>3000)return bad('มีรายการเบิกจ่ายเกิน 3,000 รายการ ระบบไม่อนุญาตให้เผยแพร่ยอดที่อาจไม่ครบ',409);
-    const asOf=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const dateParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const dateVals=Object.fromEntries(dateParts.map(p=>[p.type,p.value]));const asOf=`${dateVals.year}-${dateVals.month}-${dateVals.day}`;
     const activities=(ar.data??[]) as MonitorActivity[];
     const entries=(er.data??[]) as MonitorEntry[];
     const projects=new Map<string,{code:string;name:string;budget:number;po:number;disbursed:number;remaining:number}>();
