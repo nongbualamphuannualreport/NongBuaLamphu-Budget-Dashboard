@@ -10,14 +10,19 @@ export function bounds(mode:MonitorPeriod,date:string){
 }
 export function reportRows(acts:MonitorActivity[],entries:MonitorEntry[],mode:MonitorPeriod,date:string){
   const [from,to]=bounds(mode,date);
-  const asOf = mode==='daily'?date:to;
+  // The reference date, not the future end of the month/year, is the reporting cut-off.
+   const asOf = date;
   const rows=acts.map(a=>{
     const tx=entries.filter(e=>e.activity_id===a.id);
     const opening=a.baseline_date<=asOf?a.baseline_disbursed:0;
     const cumulative=opening+tx.filter(e=>e.paid_on<=asOf).reduce((s,e)=>s+e.amount,0);
-    const period=tx.filter(e=>e.paid_on>=from&&e.paid_on<=to).reduce((s,e)=>s+e.amount,0);
+    const period=tx.filter(e=>e.paid_on>=from&&e.paid_on<=asOf).reduce((s,e)=>s+e.amount,0);
     return {...a,cumulative,period,remaining:a.budget-cumulative};
   });
   return {from,to,asOf,rows,total:{budget:rows.reduce((s,r)=>s+r.budget,0),disbursed:rows.reduce((s,r)=>s+r.cumulative,0),period:rows.reduce((s,r)=>s+r.period,0),remaining:rows.reduce((s,r)=>s+r.remaining,0)}};
 }
-export const validDate=(v:unknown):v is string=>typeof v==='string'&&/^\d{4}-\d\d-\d\d$/.test(v)&&!Number.isNaN(Date.parse(v+'T00:00:00Z'));
+export const validDate=(v:unknown):v is string=> {
+  if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;
+  const d=new Date(v+'T00:00:00Z');
+  return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===v;
+};

@@ -97,3 +97,10 @@
 .pr-table th{font-size:8.2pt!important}
 .pr-footer{font-size:7.2pt!important}
 }
+
+/* Accessibility polish for the management printout */
+@media print{
+ .pr-date-line strong{font-size:9pt!important}
+ .pr-date-line span{font-size:8.2pt!important}
+ .pr-footer{font-size:8pt!important}
+}

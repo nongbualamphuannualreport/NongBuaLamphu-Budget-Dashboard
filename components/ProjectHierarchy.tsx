@@ -40,9 +40,9 @@ function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean
     </button>
     {open&&<div className="ph-activity-detail">
       <Amounts budget={row.budget} paid={row.disbursed} remaining={row.remaining}/>
-      <div className="ph-source"><FileSpreadsheet size={17}/><div><b>แหล่งข้อมูลประกอบจาก Excel</b><p>{detail?`ชีต ${detail.sheet} · ${detail.agencyFullName} · แถว ${detail.agencyRow}`:'รายการที่บันทึกเพิ่มในระบบ / ไม่มีชีตหน่วยงานที่เชื่อมไว้ในไฟล์ตั้งต้น'}{sourceRow(row)!==Number.MAX_SAFE_INTEGER?` · ชีตสรุป แถว ${sourceRow(row)}`:''}</p></div></div>
+      <div className="ph-source"><FileSpreadsheet size={17}/><div><b>เอกสารอ้างอิง</b><p>{detail?`ชีต ${detail.sheet} · ${detail.agencyFullName} · แถว ${detail.agencyRow}`:'รายการที่บันทึกเพิ่มในระบบ / ไม่มีชีตหน่วยงานที่เชื่อมไว้ในไฟล์ตั้งต้น'}{sourceRow(row)!==Number.MAX_SAFE_INTEGER?` · ชีตสรุป แถว ${sourceRow(row)}`:''}</p></div></div>
       {cost&&<section className="ph-costs">
-        <div className="ph-costs-head"><h4>รายการค่าใช้จ่ายตามชีตหน่วยงาน</h4><span>รายละเอียดประกอบ · ไม่นำมาบวกยอดซ้ำ</span></div>
+        <div className="ph-costs-head"><h4>รายการค่าใช้จ่ายตามชีตหน่วยงาน</h4><span>ข้อมูลประกอบ</span></div>
         {cost.rows.map(([label,budget,agencyRow],index)=><div className="ph-cost-row" key={index}><div>{label}<small>แถว {agencyRow} ของชีต {detail?.sheet}</small></div><b>{typeof budget==='number'?`${money(budget)} บาท`:'ยังไม่ระบุวงเงิน'}</b></div>)}
         {cost.status==='incomplete'&&<p className="ph-cost-warning">ชีตนี้มีชื่อรายการค่าใช้จ่ายบางรายการที่ยังไม่ระบุวงเงิน จึงไม่ควรตีความว่าแจกแจงงบประมาณครบแล้ว</p>}
       </section>}
@@ -79,7 +79,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
   }),[report,search,q]);
   const shown=grouped.filter(item=>item.visible);
   return <div className="ph-wrap">
-    <div className="ph-intro"><div><h3><Layers3 size={20}/> โครงการตามแผนปฏิบัติราชการ ปี 2570</h3><p>คลิกโครงการเพื่อดูโครงสร้างกิจกรรมและกิจกรรมย่อย เลือกรายการเพื่อดูหน่วยดำเนินการ งบประมาณ ผลเบิกจ่าย และค่าใช้จ่ายตามชีตหน่วยงาน</p></div>
+    <div className="ph-intro"><div><h3><Layers3 size={20}/> โครงการตามแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2570</h3><p>เลือกโครงการเพื่อดูรายละเอียดระดับกิจกรรมและกิจกรรมย่อย รวมทั้งวงเงิน ผลเบิกจ่ายสะสม และหน่วยดำเนินการ</p></div>
       <span className="ph-count"><Landmark size={17}/> {projects.length} โครงการ</span></div>
     {shown.length===0&&<div className="ph-no-results"><Search size={19}/> ไม่พบโครงการหรือกิจกรรมที่ตรงกับการค้นหา</div>}
     {shown.map(({project,code,rows,nodes})=>{
@@ -89,7 +89,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
       return <section className={'ph-project '+(expanded?'is-open':'')} key={code}>
         <button type="button" className="ph-project-trigger" onClick={()=>setOpened(expanded&&!q?'':code)} aria-expanded={expanded}>
           <span className="ph-project-number">{code.replace('P','')}</span>
-          <div className="ph-project-name"><strong>{project.name}</strong><small>{nodes.length} กลุ่มกิจกรรม · {rows.length} รายการที่บันทึกยอดเบิกจ่ายได้</small></div>
+          <div className="ph-project-name"><strong>{project.name}</strong><small>{nodes.length} กิจกรรมหลัก/รายการ · {rows.length} กิจกรรมและกิจกรรมย่อย</small></div>
           <div className="ph-project-money"><small>งบประมาณรวม</small><b>{money(project.budget)} บาท</b><small>เบิกจ่าย {money(project.disbursed)} บาท ({percentTH(project.disbursed,project.budget)}%)</small></div>
           {expanded?<ChevronDown className="ph-chevron" size={22}/>:<ChevronRight className="ph-chevron" size={22}/>}
         </button>
@@ -114,7 +114,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
         </div>}
       </section>;
     })}
-    {reserve&&<div className="ph-reserve"><Wallet size={21}/><div><strong>เงินเหลือจ่าย (ไม่ใช่โครงการ)</strong><p>แยกออกจากรายการโครงการ แต่คงอยู่ในยอดงบประมาณรวมตามบัญชี</p></div><b>{money(reserve.budget)} บาท</b></div>}
-    <p className="ph-provenance">แหล่งข้อมูล: ชีต “ผลการเบิกจ่าย” และ 11 ชีตหน่วยงานจาก Excel ณ 10 พฤศจิกายน 2569 · ตัวเลขปัจจุบันยึดจากรายงานที่เลือก · รายการค่าใช้จ่ายตามชีตหน่วยงานใช้เป็นข้อมูลประกอบ ไม่รวมซ้ำ</p>
+    {reserve&&<div className="ph-reserve"><Wallet size={21}/><div><strong>รายการเงินเหลือจ่าย</strong><p>แสดงแยกจากโครงการตามบัญชีงบประมาณ โดยรวมในยอดงบประมาณทั้งสิ้น</p></div><b>{money(reserve.budget)} บาท</b></div>}
+    <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงตามบัญชีหน่วยดำเนินการ ณ 10 พฤศจิกายน 2569 โดยไม่นับซ้ำกับยอดงบประมาณรายโครงการ</p>
   </div>;
 }
