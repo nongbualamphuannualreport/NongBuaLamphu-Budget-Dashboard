@@ -1,5 +1,5 @@
 'use client';
-import {useCallback,useEffect,useMemo,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState,type ReactNode,type KeyboardEvent} from 'react';
 import Link from 'next/link';
 import {createClient} from '@supabase/supabase-js';
 import {bounds,fmt,reportRows,type MonitorActivity,type MonitorEntry,type MonitorPeriod} from '@/lib/monitor';
@@ -7,6 +7,30 @@ import hierarchyMetadata from '@/data/hierarchy-metadata.json';
 import './monitor.css';
 const today=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));return `${p.year}-${p.month}-${p.day}`;};
 function thai(d:string){return new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(d+'T12:00:00+07:00'));}
+function AdminModal({title,subtitle,children,onClose,busy}:{title:string;subtitle?:string;children:ReactNode;onClose:()=>void;busy:boolean}){
+ const ref=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+   const last=document.activeElement instanceof HTMLElement?document.activeElement:null;
+   const scroll=document.body.style.overflow;
+   document.body.style.overflow='hidden';
+   const focus=window.requestAnimationFrame(()=>{const first=ref.current?.querySelector<HTMLElement>('.mon-modal-body input:not(:disabled), .mon-modal-body select:not(:disabled), .mon-modal-body textarea:not(:disabled)');(first??ref.current)?.focus();});
+   return()=>{window.cancelAnimationFrame(focus);document.body.style.overflow=scroll;last?.focus();};
+ },[]);
+ function keys(event:KeyboardEvent<HTMLDivElement>){
+   if(event.key==='Escape'){event.stopPropagation();if(!busy)onClose();return;}
+   if(event.key!=='Tab')return;
+   const all=Array.from(ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')??[]).filter(el=>el.getClientRects().length>0);
+   if(!all.length)return;
+   if(event.shiftKey&&document.activeElement===all[0]){event.preventDefault();all[all.length-1].focus();}
+   else if(!event.shiftKey&&document.activeElement===all[all.length-1]){event.preventDefault();all[0].focus();}
+ }
+ return <div className="mon-modal-backdrop mon-noprint" onKeyDown={keys}>
+   <div ref={ref} tabIndex={-1} className="mon-modal-panel" role="dialog" aria-modal="true" aria-labelledby="mon-modal-title" aria-describedby={subtitle?'mon-modal-description':undefined}>
+     <div className="mon-modal-header"><div><span className="mon-modal-eyebrow">ระบบจัดการข้อมูล · ปีงบประมาณ 2570</span><h2 id="mon-modal-title">{title}</h2>{subtitle&&<p id="mon-modal-description">{subtitle}</p>}</div><button type="button" className="mon-modal-close" aria-label="ปิดหน้าต่าง" onClick={onClose} disabled={busy}>×</button></div>
+     <div className="mon-modal-body">{children}</div>
+   </div>
+ </div>;
+}
 export function MonitorAdmin(){
  const client=useMemo(()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;return url&&key?createClient(url,key):null;},[]);
  const [session,setSession]=useState<string|null>(null),[ready,setReady]=useState(false),[loadedOnce,setLoadedOnce]=useState(false);
@@ -14,6 +38,7 @@ export function MonitorAdmin(){
  const [activities,setActivities]=useState<MonitorActivity[]>([]),[entries,setEntries]=useState<MonitorEntry[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[truncated,setTruncated]=useState(false);
  const [mode,setMode]=useState<MonitorPeriod>('daily'),[date,setDate]=useState(today),[search,setSearch]=useState(''),[selected,setSelected]=useState('');
  const [entryId,setEntryId]=useState(''),[activityId,setActivityId]=useState(''),[amount,setAmount]=useState(''),[paidOn,setPaidOn]=useState(today),[reference,setReference]=useState(''),[note,setNote]=useState('');
+ const [entryVisible,setEntryVisible]=useState(false),[modalError,setModalError]=useState('');
  const [masterVisible,setMasterVisible]=useState(false),[masterNew,setMasterNew]=useState(false),[masterId,setMasterId]=useState(''),[masterProject,setMasterProject]=useState(''),[masterProjectName,setMasterProjectName]=useState(''),[masterName,setMasterName]=useState(''),[masterAgency,setMasterAgency]=useState(''),[masterBudget,setMasterBudget]=useState(''),[projectEdit,setProjectEdit]=useState('');
  const [section,setSection]=useState<'overview'|'activities'|'entries'>('overview');
  const getToken=useCallback(async()=>{if(!client)throw Error('ยังไม่ได้เชื่อม Supabase');const {data}=await client.auth.getSession();if(!data.session)throw Error('กรุณาเข้าสู่ระบบใหม่');return data.session.access_token;},[client]);
@@ -30,19 +55,18 @@ export function MonitorAdmin(){
  function editMaster(a:MonitorActivity){
    setMasterVisible(true);setMasterNew(false);setMasterId(a.id);setMasterProject(a.project_code);setMasterProjectName(a.project_name);
    setMasterName(a.name);setMasterAgency(a.agency);setMasterBudget(String(a.budget));
-   setSection('activities');setSelected(a.project_code);
-   requestAnimationFrame(()=>document.getElementById('monitor-master')?.scrollIntoView({behavior:'smooth',block:'start'}));
+   setModalError('');setSection('activities');setSelected(a.project_code);
  }
  function createMaster(projectCode=''){
    setMasterVisible(true);setMasterNew(true);setMasterId('');setMasterProject(projectCode);
    setMasterProjectName(activities.find(a=>a.project_code===projectCode)?.project_name??'');
    setMasterName('');setMasterAgency('');setMasterBudget('');
-   setSection('activities');
-   requestAnimationFrame(()=>document.getElementById('monitor-master')?.scrollIntoView({behavior:'smooth',block:'start'}));
+   setModalError('');setSection('activities');
  }
  async function mutateMaster(payload:Record<string,unknown>){
    setBusy(true);setError('');setMessage('');
    try{
+     setModalError('');
      const response=await fetch('/api/admin/activities',{method:'POST',
        headers:{'Content-Type':'application/json',Authorization:`Bearer ${await getToken()}`},
        body:JSON.stringify(payload)});
@@ -51,13 +75,13 @@ export function MonitorAdmin(){
      await refresh();
      setMasterVisible(false);setMasterId('');setProjectEdit('');
      setMessage(result.warning??'อัปเดตข้อมูลโครงการและกิจกรรมเรียบร้อยแล้ว โปรดตรวจสอบยอดรวมก่อนเผยแพร่');
-   }catch(ex){setError(ex instanceof Error?ex.message:'จัดการข้อมูลไม่สำเร็จ');}
+   }catch(ex){setModalError(ex instanceof Error?ex.message:'จัดการข้อมูลไม่สำเร็จ');}
    finally{setBusy(false);}
  }
 
- async function mutate(payload:Record<string,unknown>){setBusy(true);setError('');setMessage('');try{const res=await fetch('/api/admin/monitor',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await getToken()}`},body:JSON.stringify(payload)});const x=await res.json();if(!res.ok)throw Error(x.error||'บันทึกไม่สำเร็จ');await refresh();setMessage(payload.action==='initialize'?'นำเข้าข้อมูลกิจกรรมตั้งต้นสำเร็จ':payload.action==='publish'?'เผยแพร่รายงานล่าสุดแล้ว เปิด Dashboard สาธารณะเพื่อดูข้อมูล':payload.action==='delete-entry'?'ลบรายการแล้ว':'บันทึกการเบิกจ่ายสำเร็จ');setEntryId('');setAmount('');setReference('');setNote('');}catch(e){setError(e instanceof Error?e.message:'ดำเนินการไม่สำเร็จ');}finally{setBusy(false);}}
- function editEntry(e:MonitorEntry){setEntryId(e.id);setActivityId(e.activity_id);setPaidOn(e.paid_on);setAmount(String(e.amount));setReference(e.reference);setNote(e.note);document.getElementById('monitor-edit')?.scrollIntoView({behavior:'smooth'});}
- function openNew(id:string){setActivityId(id);setPaidOn(today());setEntryId('');setAmount('');setReference('');setNote('');document.getElementById('monitor-edit')?.scrollIntoView({behavior:'smooth'});}
+ async function mutate(payload:Record<string,unknown>){setBusy(true);setError('');setModalError('');setMessage('');try{const res=await fetch('/api/admin/monitor',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await getToken()}`},body:JSON.stringify(payload)});const x=await res.json();if(!res.ok)throw Error(x.error||'บันทึกไม่สำเร็จ');await refresh();setMessage(payload.action==='initialize'?'นำเข้าข้อมูลกิจกรรมตั้งต้นสำเร็จ':payload.action==='publish'?'เผยแพร่รายงานล่าสุดแล้ว เปิด Dashboard สาธารณะเพื่อดูข้อมูล':payload.action==='delete-entry'?'ลบรายการแล้ว':'บันทึกการเบิกจ่ายสำเร็จ');if(payload.action==='save-entry')setEntryVisible(false);setEntryId('');setAmount('');setReference('');setNote('');}catch(e){const msg=e instanceof Error?e.message:'ดำเนินการไม่สำเร็จ';if(payload.action==='save-entry')setModalError(msg);else setError(msg);}finally{setBusy(false);}}
+ function editEntry(e:MonitorEntry){setEntryId(e.id);setActivityId(e.activity_id);setPaidOn(e.paid_on);setAmount(String(e.amount));setReference(e.reference);setNote(e.note);setModalError('');setEntryVisible(true);}
+ function openNew(id:string){setActivityId(id);setPaidOn(today());setEntryId('');setAmount('');setReference('');setNote('');setModalError('');setEntryVisible(true);}
  function forPeriod(e:MonitorEntry){return e.paid_on>=report.from&&e.paid_on<=report.to;}
  if(!ready)return <main className="mon-wrap">กำลังตรวจสอบสิทธิ์...</main>;
  if(!session)return <main className="mon-wrap mon-login"><h1>Budget Control Center</h1><p className="mon-release-label">รุ่น 2.5 · รองรับมือถือและจัดการข้อมูลกิจกรรม</p><p>เข้าสู่ระบบเจ้าหน้าที่เพียงครั้งเดียว เพื่อดูรายงานและบันทึกยอดเบิกจ่ายรายกิจกรรมย่อย</p><form className="mon-box mon-login-card" onSubmit={async e=>{e.preventDefault();setError('');setBusy(true);try{if(!client)throw Error('ยังไม่ตั้งค่า Supabase');const r=await client.auth.signInWithPassword({email:loginEmail,password:loginPass});if(r.error)throw r.error;}catch(ex){setError(ex instanceof Error?ex.message:'เข้าสู่ระบบไม่สำเร็จ');}finally{setBusy(false)}}}><label>อีเมล<input type="email" required value={loginEmail} onChange={e=>setLoginEmail(e.target.value)}/></label><label>รหัสผ่าน<input type="password" required value={loginPass} onChange={e=>setLoginPass(e.target.value)}/></label>{error&&<p className="mon-error">{error}</p>}<button className="mon-login-submit" disabled={busy}>เข้าสู่ระบบ</button></form></main>;
@@ -76,7 +100,7 @@ export function MonitorAdmin(){
   <nav className="mon-section-tabs mon-noprint" aria-label="เมนูจัดการข้อมูล">
     <button className={section==='overview'?'active':''} onClick={()=>{setSection('overview');document.getElementById('monitor-overview')?.scrollIntoView({behavior:'smooth'});}}>ภาพรวมรายงาน</button>
     <button className={section==='activities'?'active':''} onClick={()=>{setSection('activities');document.getElementById('monitor-activities')?.scrollIntoView({behavior:'smooth'});}}>โครงการและกิจกรรมย่อย</button>
-    <button className={section==='entries'?'active':''} onClick={()=>{setSection('entries');document.getElementById('monitor-edit')?.scrollIntoView({behavior:'smooth'});}}>บันทึกยอดเบิกจ่าย</button>
+    <button className={section==='entries'?'active':''} onClick={()=>{setSection('entries');openNew('');}}>บันทึกยอดเบิกจ่าย</button>
   </nav>
   <section className="mon-box mon-filters" id="monitor-overview"><div><h2>รายงานสำหรับผู้บริหาร</h2><p>เปิดมาเห็นยอดล่าสุดทันที ไม่ต้องสร้างรายงานรายวันใหม่</p></div><div className="mon-controls"><div className="mon-tabs">{(['daily','monthly','yearly'] as const).map(m=><button key={m} aria-pressed={mode===m} className={mode===m?'active':''} onClick={()=>setMode(m)}>{m==='daily'?'รายวัน':m==='monthly'?'รายเดือน':'รายปี'}</button>)}</div><label>วันที่อ้างอิง <input type="date" value={date} min="2026-11-10" max="2027-09-30" onChange={e=>setDate(e.target.value)}/></label></div></section>
   <div className="mon-print-title"><h2>รายงานการเบิกจ่ายงบประมาณจังหวัดหนองบัวลำภู ปีงบประมาณ พ.ศ. 2570</h2><p>ข้อมูล ณ {thai(report.asOf)} · รายงาน{mode==='daily'?'รายวัน':mode==='monthly'?'รายเดือน':'รายปี'} ({thai(report.from)} – {thai(report.to)})</p></div>
@@ -99,10 +123,8 @@ export function MonitorAdmin(){
       return <tr key={a.id} className={childRows.has(a.source_row??-1)?'mon-subactivity':''}><td><b>{a.name}</b><small>{a.agency}</small>{agencyRef&&<small>อ้างอิงชีต {agencyRef.sheet} แถว {agencyRef.agencyRow}</small>}</td><td>{fmt(a.budget)}</td><td>{fmt(a.cumulative)}</td><td>{fmt(a.period)}</td><td>{fmt(a.remaining)}</td><td className="mon-noprint"><div className="mon-row-actions"><button onClick={()=>openNew(a.id)}>+ เบิกจ่าย</button>{a.project_code!=='RESERVE'&&<button onClick={()=>editMaster(a)}>แก้ไขกิจกรรม</button>}</div></td></tr>;
     })}</tbody></table></div></>}</div>})}
   </section>
-  {masterVisible&&<section className="mon-box mon-noprint mon-master" id="monitor-master"><div className="mon-justify">
-      <div><h2>{masterNew?'เพิ่มกิจกรรมย่อยใหม่':'แก้ไขข้อมูลกิจกรรมย่อย'}</h2><p>ข้อมูลโครงการและวงเงินจะไม่เปลี่ยนโดยอัตโนมัติจากยอดเบิกจ่าย ต้องตรวจสอบกับเอกสารต้นทาง</p></div>
-      <button type="button" onClick={()=>setMasterVisible(false)}>ปิดแบบฟอร์ม</button>
-    </div>
+  {masterVisible&&<AdminModal title={masterNew?'เพิ่มกิจกรรมย่อยใหม่':'แก้ไขข้อมูลกิจกรรมย่อย'} subtitle="ระบุข้อมูลตามเอกสารต้นทาง ระบบจะตรวจสอบวงเงินและยอดเบิกจ่ายก่อนบันทึก" busy={busy} onClose={()=>setMasterVisible(false)}>
+    {modalError&&<div className="mon-error" role="alert">{modalError}</div>}
     <form onSubmit={e=>{e.preventDefault();const payload=masterNew?{action:'create-activity',project_code:masterProject,project_name:masterProjectName,name:masterName,agency:masterAgency,budget:Number(masterBudget)}:{action:'update-activity',id:masterId,name:masterName,agency:masterAgency,budget:Number(masterBudget)};void mutateMaster(payload);}}>
       <div className="mon-master-grid">
         <label>รหัสโครงการ <input value={masterProject} onChange={e=>setMasterProject(e.target.value.toUpperCase())} disabled={!masterNew} required placeholder="เช่น P03"/></label>
@@ -112,11 +134,18 @@ export function MonitorAdmin(){
         <label>วงเงินงบประมาณ (บาท) <input type="number" min="0" step="0.01" value={masterBudget} onChange={e=>setMasterBudget(e.target.value)} required/></label>
       </div>
       {masterCurrent&&<p className="mon-muted">ยอดเบิกจ่ายตั้งต้นของรายการนี้ {fmt(masterCurrent.baseline_disbursed)} บาท · ระบบไม่อนุญาตให้ลดวงเงินต่ำกว่ายอดเบิกสะสม</p>}
-      <div className="mon-actions"><button disabled={busy||!masterName.trim()||!masterBudget}>{busy?'กำลังบันทึก...':masterNew?'เพิ่มกิจกรรม':'บันทึกการแก้ไขกิจกรรม'}</button>
+      <div className="mon-actions mon-modal-actions"><button type="submit" disabled={busy||!masterName.trim()||!masterBudget}>{busy?'กำลังบันทึก...':masterNew?'เพิ่มกิจกรรม':'บันทึกการแก้ไขกิจกรรม'}</button>
+      <button type="button" disabled={busy} onClick={()=>setMasterVisible(false)}>ยกเลิก</button>
       {!masterNew&&masterCurrent&&masterCurrent.baseline_disbursed===0&&<button type="button" disabled={busy} onClick={()=>{if(window.confirm('ยืนยันลบกิจกรรมนี้? หากมียอดเบิกจ่าย ระบบจะป้องกันการลบ'))void mutateMaster({action:'delete-activity',id:masterId});}}>ลบกิจกรรมที่ไม่มีประวัติ</button>}</div>
     </form>
-  </section>}
-  <section className="mon-box mon-noprint" id="monitor-edit"><h2>{entryId?'แก้ไขรายการเบิกจ่ายเดิม':'บันทึกการเบิกจ่ายครั้งใหม่'}</h2><p>เลือกกิจกรรมย่อย กรอกจำนวนเงินที่หน่วยงานส่งเบิกจริง และวันที่จ่าย ระบบจะคำนวณสะสมกับยอดคงเหลือให้ทันที ไม่ต้องใส่ยอดสะสมทั้งก้อนซ้ำ</p><form onSubmit={e=>{e.preventDefault();void mutate({action:'save-entry',id:entryId||undefined,activity_id:activityId,paid_on:paidOn,amount:Number(amount),reference,note});}}><div className="mon-form"><label>กิจกรรมย่อย<select value={activityId} onChange={e=>setActivityId(e.target.value)} required><option value="">เลือกกิจกรรม</option>{activities.map(a=><option value={a.id} key={a.id}>{a.project_code} · {a.name.slice(0,110)}</option>)}</select></label><label>วันที่เบิกจ่าย<input type="date" value={paidOn} min="2026-11-10" max="2027-09-30" onChange={e=>setPaidOn(e.target.value)} required/></label><label>จำนวนเงินที่เบิกเพิ่ม (บาท)<input type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="เช่น 25000"/></label><label>เอกสารอ้างอิง<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="เลขที่ฎีกา / หนังสือ"/></label><label className="mon-wide">หมายเหตุ<input value={note} onChange={e=>setNote(e.target.value)} placeholder="รายละเอียดการเบิกจ่าย"/></label></div><div className="mon-actions"><button disabled={busy||!activityId}>{busy?'กำลังบันทึก...':entryId?'บันทึกการแก้ไข':'เพิ่มรายการเบิกจ่าย'}</button>{entryId&&<button type="button" onClick={()=>{setEntryId('');setAmount('');setNote('');setReference('');}}>ยกเลิกแก้ไข</button>}</div></form></section>
+  </AdminModal>}
+  {entryVisible&&<AdminModal title={entryId?'แก้ไขรายการเบิกจ่าย':'บันทึกผลเบิกจ่ายครั้งใหม่'} subtitle="กรอกยอดเบิกเพิ่มจริงตามวันที่ ระบบคำนวณยอดสะสมและคงเหลือให้โดยอัตโนมัติ" busy={busy} onClose={()=>setEntryVisible(false)}>
+    {modalError&&<div className="mon-error" role="alert">{modalError}</div>}
+    <form onSubmit={e=>{e.preventDefault();void mutate({action:'save-entry',id:entryId||undefined,activity_id:activityId,paid_on:paidOn,amount:Number(amount),reference,note});}}>
+      <div className="mon-form"><label>กิจกรรมย่อย<select value={activityId} onChange={e=>setActivityId(e.target.value)} required><option value="">เลือกกิจกรรม</option>{activities.filter(a=>a.project_code!=='RESERVE').map(a=><option value={a.id} key={a.id}>{a.project_code} · {a.name.slice(0,110)}</option>)}</select></label><label>วันที่เบิกจ่าย<input type="date" value={paidOn} min="2026-11-10" max="2027-09-30" onChange={e=>setPaidOn(e.target.value)} required/></label><label>จำนวนเงินที่เบิกเพิ่ม (บาท)<input type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="เช่น 25000"/></label><label>เอกสารอ้างอิง<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="เลขที่ฎีกา / หนังสือ"/></label><label className="mon-wide">หมายเหตุ<input value={note} onChange={e=>setNote(e.target.value)} placeholder="รายละเอียดการเบิกจ่าย"/></label></div>
+      <div className="mon-actions mon-modal-actions"><button type="submit" disabled={busy||!activityId}>{busy?'กำลังบันทึก...':entryId?'บันทึกการแก้ไข':'เพิ่มรายการเบิกจ่าย'}</button><button type="button" disabled={busy} onClick={()=>setEntryVisible(false)}>ยกเลิก</button></div>
+    </form>
+  </AdminModal>}
   <section className="mon-box mon-noprint mon-entries-history" id="monitor-history"><h2>รายการเบิกจ่ายล่าสุดและประวัติ</h2><p>วันที่มีรายการจริงจะแสดงอัตโนมัติ ไม่จำเป็นต้องจำวันที่เอง</p><div className="mon-history">{history.slice(0,20).map(d=><button key={d} onClick={()=>{setDate(d);setMode('daily');}}>{thai(d)} ({entries.filter(e=>e.paid_on===d).length} รายการ)</button>)}</div><div className="mon-scroll"><table><thead><tr><th>วันที่</th><th>กิจกรรมย่อย</th><th>ยอดที่เบิกเพิ่ม</th><th>เอกสารอ้างอิง</th><th>จัดการ</th></tr></thead><tbody>{entries.filter(e=>search?activities.find(a=>a.id===e.activity_id)?.name.includes(search):true).slice(0,150).map(e=><tr key={e.id}><td>{thai(e.paid_on)}</td><td>{activities.find(a=>a.id===e.activity_id)?.name??e.activity_id}</td><td>{fmt(e.amount)}</td><td>{e.reference}</td><td><button onClick={()=>editEntry(e)}>แก้ไข</button> <button onClick={()=>{if(window.confirm('ยืนยันลบรายการนี้? ระบบเก็บประวัติการลบไว้'))void mutate({action:'delete-entry',id:e.id});}}>ลบ</button></td></tr>)}</tbody></table></div></section>
   </>}
   <footer className="mon-footer">ข้อมูลจากระบบบันทึกการเบิกจ่ายของจังหวัด · รายงานฉบับภายในสำหรับตรวจสอบก่อนเสนอผู้บริหาร</footer>
