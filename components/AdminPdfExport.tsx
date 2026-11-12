@@ -4,6 +4,7 @@ import {useMemo,useRef,useState} from 'react';
 import type {MonitorActivity,MonitorPeriod} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
 import './admin-pdf-export.css';
+import {paginatePdfProjectDetails} from '@/lib/pdf-project-pages';
 
 type Row=MonitorActivity & {cumulative:number;period:number;remaining:number};
 type Report={
@@ -21,11 +22,6 @@ const today=()=>{
  const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));
  return p.year+'-'+p.month+'-'+p.day;
 };
-function chunk<T>(list:T[],size:number):T[][]{
- const parts:T[][]=[];
- for(let i=0;i<list.length;i+=size)parts.push(list.slice(i,i+size));
- return parts;
-}
 function Money({value}:{value:number}){return <>{fmt(value)}</>}
 function PageFrame({children,page,total,created,asOf}:{children:React.ReactNode;page:number;total:number;created:string;asOf:string}){
  return <section className="apdf-page" aria-label={'หน้าที่ '+page}>
@@ -53,9 +49,11 @@ export function AdminPdfExport({report,mode,enabled}:Props){
  const activities=report.rows.filter(r=>r.project_code!=='RESERVE');
  const started=reportProjects.filter(p=>p.paid>0);
  const pct=report.total.budget?Math.max(0,Math.min(100,report.total.disbursed/report.total.budget*100)):0;
- const projectPages=chunk(projects,8);
- const activityPages=chunk(activities,6);
- const totalPages=1+projectPages.length+activityPages.length;
+ const detailPages=paginatePdfProjectDetails(projects,activities.map(a=>({
+  id:a.id,project_code:a.project_code,name:a.name,agency:a.agency,
+  budget:a.budget,cumulative:a.cumulative,remaining:a.remaining
+ })));
+ const totalPages=1+detailPages.length;
  const periodLabel=mode==='daily'?'รายวัน':mode==='monthly'?'รายเดือน':'รายปีงบประมาณ';
 
  async function download(kind:'summary'|'full'){
@@ -135,23 +133,51 @@ export function AdminPdfExport({report,mode,enabled}:Props){
      )}{started.length===0&&<p>ยังไม่มีรายการเบิกจ่าย</p>}
     </div>
    </PageFrame>
-   {projectPages.map((part,idx)=><PageFrame key={'p'+idx} page={idx+2} total={totalPages} created={created} asOf={report.asOf}>
-     <div className="apdf-section-title"><h2>ผลการเบิกจ่ายรายโครงการ</h2><p>หน่วย: บาท · รายงาน{periodLabel} · {thaiDate(report.asOf)}</p></div>
-     <div className="apdf-table-head"><span>โครงการ</span><span>งบประมาณ</span><span>เบิกจ่าย</span><span>คงเหลือ</span></div>
-     {part.map((p,i)=><div className="apdf-row" key={p.code}>
-       <div className="apdf-row-name"><small>{String(idx*8+i+1).padStart(2,'0')}</small><strong>{p.code==='RESERVE'?'รายการเงินเหลือจ่าย':p.name}</strong></div>
-       <span><Money value={p.budget}/></span><span><Money value={p.paid}/></span><span><Money value={p.remaining}/></span>
-     </div>)}
-     <div className="apdf-page-total"><b>รวมงบประมาณ</b><strong><Money value={report.total.budget}/> บาท</strong></div>
-   </PageFrame>)}
-   {activityPages.map((part,idx)=><PageFrame key={'a'+idx} page={idx+2+projectPages.length} total={totalPages} created={created} asOf={report.asOf}>
-     <div className="apdf-section-title"><h2>ผลการเบิกจ่ายรายกิจกรรมย่อย</h2><p>ข้อมูล ณ {thaiDate(report.asOf)} · หน่วย: บาท</p></div>
-     <div className="apdf-table-head"><span>กิจกรรมและหน่วยดำเนินการ</span><span>งบประมาณ</span><span>เบิกจ่าย</span><span>คงเหลือ</span></div>
-     {part.map((r,i)=><div className="apdf-row apdf-activity-row" key={r.id}>
-       <div className="apdf-row-name"><small>{String(idx*6+i+1).padStart(2,'0')} · {r.project_code}</small><strong>{r.name}</strong><em>{r.agency}</em></div>
-       <span><Money value={r.budget}/></span><span><Money value={r.cumulative}/></span><span><Money value={r.remaining}/></span>
-     </div>)}
-   </PageFrame>)}
+   {detailPages.map((items,idx)=>
+    <PageFrame key={'detail-'+idx} page={idx+2} total={totalPages} created={created} asOf={report.asOf}>
+      {idx===0&&<header className="apdf-detail-intro">
+        <h2>ผลการเบิกจ่ายงบประมาณจำแนกตามโครงการและกิจกรรมย่อย</h2>
+        <p>จังหวัดหนองบัวลำภู · ประจำปีงบประมาณ พ.ศ. 2570 · ข้อมูล ณ {thaiDate(report.asOf)}</p>
+      </header>}
+      {idx===0&&<div className="apdf-detail-columns"><span>โครงการ / กิจกรรมย่อย</span><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือ</span></div>}
+      <div className="apdf-detail-list">
+        {items.map((item,i)=>item.kind==='project'?
+          <section className="apdf-project-line" key={'project-'+item.project.code}>
+            <div className="apdf-detail-main">
+              <span className="apdf-project-index">{String(item.ordinal).padStart(2,'0')}</span>
+              <strong>{item.project.code==='RESERVE'?'รายการเงินเหลือจ่าย':item.project.name}</strong>
+            </div>
+            <div className="apdf-detail-figures">
+              <b>{fmt(item.project.budget)}</b>
+              <b className="apdf-paid">{fmt(item.project.paid)}</b>
+              <b>{fmt(item.project.remaining)}</b>
+            </div>
+          </section>:
+          <div className="apdf-subactivity-line" key={'activity-'+item.row.id}>
+            <div className="apdf-detail-main">
+              <span className="apdf-subactivity-index">{item.ordinal}.</span>
+              <div>
+                <strong>{item.row.name}</strong>
+                {item.row.agency&&<small>{item.row.agency}</small>}
+              </div>
+            </div>
+            <div className="apdf-detail-figures">
+              <span>{fmt(item.row.budget)}</span>
+              <span className="apdf-paid">{fmt(item.row.cumulative)}</span>
+              <span>{fmt(item.row.remaining)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      {idx===detailPages.length-1&&<div className="apdf-detail-grand-total">
+        <strong>รวมงบประมาณทั้งสิ้น</strong>
+        <div className="apdf-detail-figures">
+          <b>{fmt(report.total.budget)}</b>
+          <b>{fmt(report.total.disbursed)}</b>
+          <b>{fmt(report.total.remaining)}</b>
+        </div>
+      </div>}
+    </PageFrame>)}
   </div>
  </section>;
 }

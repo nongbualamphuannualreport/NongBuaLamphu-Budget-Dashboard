@@ -57,3 +57,75 @@
 .apdf-page-total{display:flex;justify-content:space-between;gap:16px;margin-top:22px;padding:16px;background:#edf6ef;border-radius:9px;color:#1c644e}
 @media(max-width:700px){.apdf-actions{display:grid;grid-template-columns:1fr}.apdf-actions button{width:100%}}
 @media print{.apdf-controls,.apdf-capture{display:none!important}}
+/* Continuous hierarchy for the detailed PDF.
+   Heading is rendered only on the first detail sheet; subsequent pages contain data only. */
+.apdf-detail-intro{
+  border-bottom:3px solid #183f59;padding:5px 0 14px;margin-bottom:13px;
+}
+.apdf-detail-intro h2{
+  color:#203b50;font-size:21px;line-height:1.45;margin:0;font-weight:800;
+}
+.apdf-detail-intro p{
+  margin:6px 0 0;color:#69808b;font-size:11px;line-height:1.5;
+}
+.apdf-detail-columns,.apdf-project-line,.apdf-subactivity-line,.apdf-detail-grand-total{
+  display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.1fr);
+  align-items:center;column-gap:12px;min-width:0;
+}
+.apdf-detail-columns{
+  margin:5px 0 9px;padding:9px 10px;background:#edf3f2;
+  border-radius:6px;font-size:11px;color:#496674;font-weight:700;
+}
+.apdf-detail-columns>span:nth-child(n+2){display:none}
+.apdf-detail-columns>span:first-child{font-size:11px}
+.apdf-detail-list{display:block}
+.apdf-project-line{
+  background:#eef5f2;border-left:4px solid #26725e;border-radius:7px;
+  margin:13px 0 6px;padding:12px 10px;min-height:76px;
+}
+.apdf-detail-main{
+  display:flex;align-items:flex-start;gap:9px;min-width:0;
+}
+.apdf-detail-main>strong,.apdf-detail-main>div{flex:1;min-width:0}
+.apdf-project-index{
+  background:#d7e8dc;color:#1d6851;border-radius:6px;
+  flex:0 0 30px;width:30px;min-height:30px;display:grid;place-items:center;
+  font-size:12px;font-weight:800;
+}
+.apdf-project-line .apdf-detail-main>strong{
+  color:#193e4d;font-size:13px;line-height:1.56;
+  overflow-wrap:anywhere;word-break:normal;
+}
+.apdf-detail-figures{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;gap:7px;min-width:0;text-align:right;
+  color:#294958;
+}
+.apdf-detail-figures>*{
+  min-width:0;display:block;font-size:11px;
+  line-height:1.45;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.apdf-detail-figures .apdf-paid{color:#137052}
+.apdf-project-line .apdf-detail-figures b{font-weight:800;font-size:12px}
+.apdf-subactivity-line{
+  padding:10px 10px 11px 19px;border-bottom:1px solid #e4ebe8;min-height:70px;
+}
+.apdf-subactivity-index{
+  flex:0 0 18px;color:#ad805d;font-size:11px;
+  line-height:1.5;font-weight:700;
+}
+.apdf-subactivity-line .apdf-detail-main strong{
+  display:block;color:#304854;font-size:12px;line-height:1.55;
+  overflow-wrap:anywhere;word-break:normal;font-weight:600;
+}
+.apdf-subactivity-line .apdf-detail-main small{
+  display:block;color:#7a8b89;font-size:10px;line-height:1.5;margin-top:3px;
+  overflow-wrap:anywhere;
+}
+.apdf-detail-grand-total{
+  padding:14px 12px;margin-top:16px;background:#dfeee7;
+  border-radius:8px;color:#175941;
+}
+.apdf-detail-grand-total>strong{font-size:12px}
+.apdf-detail-grand-total .apdf-detail-figures b{font-size:12px}
