@@ -1,33 +1,106 @@
 'use client';
-import { useEffect,useMemo,useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
-import type { DisbursementReport,DisbursementRow } from '@/lib/disbursement';
-import { moneyTH,percentTH } from '@/lib/disbursement';
-import { BarChart3, Download, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
+import { moneyTH, percentTH } from '@/lib/disbursement';
+import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import { ExecutivePrintReport } from './ExecutivePrintReport';
+
+type PrintMode = 'summary' | 'full';
+const thaiDate = (value:string) => {
+  const d = new Date(value+'T12:00:00+07:00');
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(d);
+};
+const pct = (a:number,b:number) => Math.max(0,Math.min(100,b?a/b*100:0));
+function Metric({label,value,sub,tone}:{label:string,value:string,sub:string,tone?:'accent'|'blue'}){
+  return <article className={`ds-kpi ${tone?'ds-kpi-'+tone:''}`}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>;
+}
 export function DisbursementDashboard(){
-  const [report,setReport]=useState<DisbursementReport|null>(null);
-  const [loading,setLoading]=useState(true);
-  const [preview,setPreview]=useState(false);
-  const [error,setError]=useState('');
-  const [search,setSearch]=useState('');
-  const [view,setView]=useState<'projects'|'activities'>('projects');
-  const [date,setDate]=useState('');
-  const [reload,setReload]=useState(0);
-  useEffect(()=>{let live=true;setLoading(true);setError('');fetch(date?`/api/disbursement?date=${date}`:'/api/disbursement',{cache:'no-store'}).then(async r=>{const x=await r.json();if(!r.ok)throw Error(x.error??'โหลดข้อมูลไม่สำเร็จ');if(live){setReport(x.report);setPreview(!!x.preview);}}).catch(e=>{if(live)setError(String(e.message));}).finally(()=>{if(live)setLoading(false)});return()=>{live=false};},[date,reload]);
-  const filtered=useMemo(()=> (view==='projects' ? report?.projects ?? [] : report?.activities ?? []).filter(r=>[r.name,r.activity,r.agency,r.code].some(t=>String(t??'').toLowerCase().includes(search.toLowerCase()))),[report,view,search]);
-  const csv=()=>{if(!report)return;const rows=[['ประเภท','โครงการ/กิจกรรม','หน่วยงาน','งบประมาณ','เบิกจ่าย','คงเหลือ','ร้อยละ'],...(view==='projects'?report.projects:report.activities).map(x=>[view==='projects'?'โครงการ':'กิจกรรม',x.name??x.activity??'',x.agency??'',x.budget,x.disbursed,x.remaining,percentTH(x.disbursed,x.budget)])];const text='\uFEFF'+rows.map(x=>x.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');const u=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download=`disbursement-${report.as_of_date}.csv`;a.click();URL.revokeObjectURL(u)};
+  const [report,setReport] = useState<DisbursementReport|null>(null);
+  const [loading,setLoading] = useState(true);
+  const [preview,setPreview] = useState(false);
+  const [error,setError] = useState('');
+  const [search,setSearch] = useState('');
+  const [view,setView] = useState<'projects'|'activities'>('projects');
+  const [date,setDate] = useState('');
+  const [reload,setReload] = useState(0);
+  const [printMode,setPrintMode] = useState<PrintMode>('summary');
+  useEffect(()=>{
+    let live = true;
+    setLoading(true);setError('');
+    fetch(date?`/api/disbursement?date=${encodeURIComponent(date)}`:'/api/disbursement',{cache:'no-store'})
+      .then(async r=>{const x=await r.json();if(!r.ok)throw Error(x.error??'โหลดข้อมูลไม่สำเร็จ');if(live){setReport(x.report);setPreview(!!x.preview);}})
+      .catch(e=>{if(live){setReport(null);setError(e instanceof Error?e.message:'โหลดข้อมูลไม่สำเร็จ');}})
+      .finally(()=>{if(live)setLoading(false);});
+    return ()=>{live=false;};
+  },[date,reload]);
+  const filtered=useMemo(()=> (view==='projects'?report?.projects??[]:report?.activities??[]).filter(r=>
+    [r.name,r.activity,r.agency,r.code,r.project_code].some(t=>String(t??'').toLowerCase().includes(search.toLowerCase()))
+  ),[report,view,search]);
+  const totalProjects=report?.projects.filter(p=>p.code!=='RESERVE').length??0;
+  const active=report?.projects.filter(p=>p.code!=='RESERVE'&&p.disbursed>0).length??0;
+  function print(scope:PrintMode){if(!report)return;flushSync(()=>setPrintMode(scope));window.print();}
+  function csv(){
+    if(!report)return;
+    const rows=[['ประเภท','โครงการ/กิจกรรม','หน่วยงาน','งบประมาณ','เบิกจ่าย','คงเหลือ','ร้อยละ'],
+      ...(view==='projects'?report.projects:report.activities).map(x=>[view==='projects'?'โครงการ':'กิจกรรม',x.name??x.activity??'',x.agency??'',x.budget,x.disbursed,x.remaining,percentTH(x.disbursed,x.budget)])];
+    const esc=(v:unknown)=>{const s=String(v??'');return '"'+(/^[=+@\-\t\r]/.test(s)?"'"+s:s).replace(/"/g,'""')+'"';};
+    const content='\uFEFF'+rows.map(row=>row.map(esc).join(',')).join('\r\n');
+    const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));
+    const a=document.createElement('a');a.href=url;a.download=`nongbualamphu-budget-${report.as_of_date}.csv`;a.click();URL.revokeObjectURL(url);
+  }
   return <main className="ds-wrap">
-    <header className="ds-top"><div className="ds-brand"><span className="ds-mark">นภ</span><div><strong>NBL Budget Monitor</strong><small>จังหวัดหนองบัวลำภู · ประจำปีงบประมาณ พ.ศ. 2570</small></div></div><nav><Link href="/admin"><ShieldCheck size={15}/> หลังบ้านผลเบิกจ่าย</Link></nav></header>
-    <section className="ds-hero"><div className="ds-kicker">PROVINCIAL FINANCIAL INTELLIGENCE</div><h1>ติดตามผลการเบิกจ่ายงบประมาณ<br/>จังหวัดหนองบัวลำภู</h1><p>ภาพรวมงบประมาณ ผลเบิกจ่าย คงเหลือ และรายละเอียดรายโครงการ/กิจกรรม</p><span className="ds-source">ข้อมูลล่าสุดที่เผยแพร่: {report?.as_of_date??'ยังไม่มีข้อมูล'} · {report?.source_file??'รอการเผยแพร่'}</span></section>
-    {preview&&report&&<div style={{margin:"16px 0",padding:14,background:"#fff4db",borderRadius:10,color:"#865a13",fontWeight:600}}>ข้อมูลอ้างอิงจาก Excel ณ 10 พฤศจิกายน 2569 ยังไม่ใช่รายงานที่เจ้าหน้าที่ยืนยันเผยแพร่ — เข้าหลังบ้านเพื่อตรวจสอบและเผยแพร่ยอดล่าสุด</div>}
-    <div className="ds-tools"><label>ดูข้อมูล <select aria-label="เลือกช่วงรายงาน" value={date?'history':'latest'} onChange={e=>{if(e.target.value==='latest')setDate('');else if(!date&&report)setDate(report.as_of_date);}}><option value="latest">รายงานล่าสุดอัตโนมัติ</option><option value="history">ย้อนดูตามวันที่</option></select></label>{date&&<label>ข้อมูล ณ หรือก่อนวันที่ <input aria-label="เลือกวันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}<button onClick={()=>{setDate('');setReload(v=>v+1);}}><RefreshCw size={15}/> ข้อมูลล่าสุด</button><span/><button onClick={csv} disabled={!report}><Download size={15}/> ส่งออก CSV</button><button onClick={()=>window.print()} disabled={!report}><Download size={15}/> พิมพ์ / บันทึก PDF</button></div>
-    {loading?<div className="ds-empty">กำลังโหลดรายงาน...</div>:error?<div className="ds-empty">{error}</div>:!report?<div className="ds-empty"><BarChart3 size={40}/><h2>ยังไม่มีรายงานผลเบิกจ่ายที่เผยแพร่</h2><p>เจ้าหน้าที่สามารถนำเข้าข้อมูลและเผยแพร่ได้ที่หลังบ้านผลเบิกจ่าย</p><Link href="/admin">ไปที่หลังบ้าน</Link></div>:<>
-    <section className="ds-kpis"><Kpi label="งบประมาณรวม" value={report.totals.budget} sub="บาท"/><Kpi label="เบิกจ่ายแล้ว" value={report.totals.disbursed} sub="บาท"/><Kpi label="คงเหลือยังไม่เบิกจ่าย" value={report.totals.remaining} sub="บาท"/><article className="ds-kpi"><span>อัตราการเบิกจ่าย</span><strong>{percentTH(report.totals.disbursed,report.totals.budget)}%</strong><small>ของงบประมาณรวม</small></article></section>
-    <section className="ds-panel ds-progress"><div><h2>ความก้าวหน้าการเบิกจ่าย</h2><p>อัตราเบิกจ่ายเทียบงบประมาณทั้งหมด</p></div><strong>{percentTH(report.totals.disbursed,report.totals.budget)}%</strong><div className="ds-track"><i style={{width:`${Math.min(100,report.totals.disbursed/report.totals.budget*100)}%`}}/></div><p>เบิกจ่าย {moneyTH(report.totals.disbursed)} บาท / วงเงิน {moneyTH(report.totals.budget)} บาท</p></section>
-    <section className="ds-panel"><div className="ds-section-head"><div><h2>รายละเอียดงบประมาณ</h2><p>เลือกดูรายโครงการหรือรายกิจกรรม ไม่รวมยอดซ้ำระหว่างระดับข้อมูล</p></div><div className="ds-controls"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button><label><Search size={14}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาชื่อหรือหน่วยงาน"/></label></div></div>
-    <div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>โครงการ / กิจกรรม</th><th>งบประมาณ (บาท)</th><th>เบิกจ่าย (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={`${view}-${i}`}><td>{i+1}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.code==='RESERVE'?'เงินเหลือจ่าย':p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-green">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-mini"><i style={{width:`${Math.min(100,p.budget?p.disbursed/p.budget*100:0)}%`}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>
-    <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {report.as_of_date} · ยอดรายโครงการรวมเงินเหลือจ่าย · รายกิจกรรมเป็นรายละเอียดประกอบ ไม่บวกซ้ำ</p></section></>}
-    <footer className="ds-footer">© จังหวัดหนองบัวลำภู · รายงานผลเบิกจ่ายงบประมาณ พ.ศ. 2570 <span>รุ่น 2.3 · รายงานผลเบิกจ่าย</span></footer>
+    <div className="ds-screen">
+      <header className="ds-top"><div className="ds-top-inner">
+        <div className="ds-brand"><span className="ds-mark">นภ</span><div><strong>NBL Budget Monitor</strong><small>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570</small></div></div>
+        <nav><Link href="/admin"><LockKeyhole size={15}/> เข้าสู่ระบบเจ้าหน้าที่</Link></nav>
+      </div></header>
+      <div className="ds-content">
+        <section className="ds-hero">
+          <div className="ds-hero-text"><div className="ds-kicker"><span/> PROVINCIAL BUDGET INTELLIGENCE</div><h1>ติดตามผลการเบิกจ่ายงบประมาณ<br/><em>จังหวัดหนองบัวลำภู</em></h1>
+            <p>ดูภาพรวมงบประมาณ ผลเบิกจ่ายและคงเหลือ ตลอดจนรายละเอียดรายโครงการและกิจกรรมย่อยในหน้าเดียว</p>
+            <div className="ds-hero-meta"><span><CalendarDays size={14}/> {report?'ข้อมูล ณ '+thaiDate(report.as_of_date):'กำลังตรวจสอบวันที่รายงาน'}</span><span><ShieldCheck size={14}/> {preview?'ข้อมูลอ้างอิง ยังไม่ยืนยัน':'รายงานเผยแพร่แล้ว'}</span></div>
+          </div>
+          <div className="ds-hero-total"><span>งบประมาณปี 2570</span><strong>{report?moneyTH(report.totals.budget):'—'}</strong><small>บาท · {totalProjects} โครงการ</small><div className="ds-hero-ring"/></div>
+        </section>
+        {preview&&report&&<div className="ds-status-note" role="status"><div className="ds-status-icon">!</div><div><strong>ข้อมูลอ้างอิงจาก Excel ณ {thaiDate(report.as_of_date)}</strong><p>ยังไม่ใช่รายงานที่เจ้าหน้าที่ยืนยันเผยแพร่ สามารถดูตัวเลขและทดลองจัดทำ PDF ได้ แต่ควรตรวจสอบก่อนใช้เป็นรายงานทางการ</p></div><Link href="/admin">ไปหลังบ้าน</Link></div>}
+        <div className="ds-toolbar">
+          <div className="ds-view-controls"><label>ดูข้อมูล <select aria-label="เลือกช่วงรายงาน" value={date?'history':'latest'} onChange={e=>{if(e.target.value==='latest')setDate('');else if(!date&&report)setDate(report.as_of_date);}}><option value="latest">ล่าสุดอัตโนมัติ</option><option value="history">ย้อนหลังตามวันที่</option></select></label>
+            {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
+            <button className="ds-icon-btn" onClick={()=>{setDate('');setReload(v=>v+1);}} title="รีเฟรชข้อมูลล่าสุด"><RefreshCw size={15}/> รีเฟรช</button></div>
+          <div className="ds-export-controls">
+            <button onClick={csv} disabled={!report}><FileSpreadsheet size={15}/> ส่งออก CSV</button>
+            <button className="ds-cta-outline" onClick={()=>print('summary')} disabled={!report}><FileText size={15}/> PDF สรุป 1 หน้า</button>
+            <button className="ds-cta" onClick={()=>print('full')} disabled={!report}><Download size={15}/> PDF รายละเอียด</button>
+          </div>
+        </div>
+        {loading?<section className="ds-empty"><BarChart3 size={30}/><h2>กำลังโหลดข้อมูล...</h2></section>:error?<section className="ds-empty ds-error"><h2>ไม่สามารถแสดงรายงานได้</h2><p>{error}</p></section>:!report?<section className="ds-empty"><BarChart3 size={32}/><h2>ยังไม่มีข้อมูลสำหรับช่วงเวลาที่เลือก</h2><p>กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่</p></section>:<>
+          <section className="ds-kpis" aria-label="สรุปผลการเบิกจ่าย">
+            <Metric label="งบประมาณรวม" value={moneyTH(report.totals.budget)} sub="บาท"/>
+            <Metric label="เบิกจ่ายสะสม" value={moneyTH(report.totals.disbursed)} sub="บาท" tone="blue"/>
+            <Metric label="คงเหลือยังไม่เบิกจ่าย" value={moneyTH(report.totals.remaining)} sub="บาท"/>
+            <Metric label="อัตราการเบิกจ่าย" value={percentTH(report.totals.disbursed,report.totals.budget)+'%'} sub="ของงบประมาณรวม" tone="accent"/>
+          </section>
+          <div className="ds-analysis-grid">
+            <section className="ds-panel ds-progress"><div className="ds-panel-head"><div><span className="ds-overline">BUDGET PROGRESS</span><h2>ความก้าวหน้าการเบิกจ่าย</h2></div><span className="ds-mini-tag">ข้อมูลสะสม</span></div>
+              <strong>{percentTH(report.totals.disbursed,report.totals.budget)}%</strong>
+              <div className="ds-track"><i style={{width:pct(report.totals.disbursed,report.totals.budget)+'%'}}/></div>
+              <div className="ds-progress-caption"><span>เบิกจ่ายแล้ว <b>{moneyTH(report.totals.disbursed)} บาท</b></span><span>คงเหลือ <b>{moneyTH(report.totals.remaining)} บาท</b></span></div>
+            </section>
+            <section className="ds-panel ds-overview"><div className="ds-panel-head"><div><span className="ds-overline">PROJECT STATUS</span><h2>ภาพรวมรายโครงการ</h2></div></div>
+              <div className="ds-overview-numbers"><div><strong>{totalProjects}</strong><span>โครงการทั้งหมด</span></div><div><strong>{active}</strong><span>เริ่มเบิกจ่ายแล้ว</span></div><div><strong>{totalProjects-active}</strong><span>ยังไม่เบิกจ่าย</span></div></div>
+              <p>รายละเอียดและชื่อหน่วยดำเนินการสามารถค้นหาได้ในตารางด้านล่าง</p>
+            </section>
+          </div>
+          <section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">DETAILED REPORT</span><h2>ผลการเบิกจ่ายรายโครงการและกิจกรรม</h2><p>ตัวเลขเป็นยอดสะสม และไม่นับยอดกิจกรรมซ้ำกับยอดระดับโครงการ</p></div><div className="ds-controls"><div className="ds-segment"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button></div><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / หน่วยงาน"/></label></div></div>
+            <div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>โครงการ / กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.code==='RESERVE'?'เงินเหลือจ่าย':p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>
+            <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
+          </section>
+        </>}
+        <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>Budget Monitor v2.4</span></footer>
+      </div>
+    </div>
+    {report&&<ExecutivePrintReport report={report} preview={preview} mode={printMode}/>}
   </main>;
 }
-function Kpi({label,value,sub}:{label:string;value:number;sub:string}){return <article className="ds-kpi"><span>{label}</span><strong>{moneyTH(value)}</strong><small>{sub}</small></article>}
