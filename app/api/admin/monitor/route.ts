@@ -6,16 +6,28 @@ export const dynamic='force-dynamic';
 async function authorize(req:NextRequest){return isConfigured()?verifyAdmin(req.headers.get('authorization')):null;}
 const unauthorized=()=>NextResponse.json({error:'กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ที่มีสิทธิ์'},{status:403});
 const bad=(message:string,status=400)=>NextResponse.json({error:message},{status});
+async function readAllEntries(db:ReturnType<typeof serverDb>){
+  const rows:MonitorEntry[]=[];
+  for(let offset=0;offset<20000;offset+=500){
+    const {data,error}=await db.from('monitor_entries').select('*').order('paid_on',{ascending:false}).order('id',{ascending:true}).range(offset,offset+499);
+    if(error)throw Error(error.message);
+    rows.push(...((data??[]) as MonitorEntry[]));
+    if((data??[]).length<500)return {rows,truncated:false};
+  }
+  return {rows,truncated:true};
+}
 // This interface is internal. It never uses the public anon key for reads/writes.
 export async function GET(req:NextRequest){
   if(!await authorize(req))return unauthorized();
   const db=serverDb();
-  const [a,e]=await Promise.all([
-    db.from('monitor_activities').select('*').order('project_code').order('source_row'),
-    db.from('monitor_entries').select('*').order('paid_on',{ascending:false}).limit(3000)
-  ]);
-  if(a.error||e.error)return bad(a.error?.message??e.error?.message??'อ่านข้อมูลไม่สำเร็จ',500);
-  return NextResponse.json({activities:a.data??[],entries:e.data??[],truncated:(e.data??[]).length===3000},{headers:{'Cache-Control':'no-store'}});
+  try{
+    const [a,e]=await Promise.all([
+      db.from('monitor_activities').select('*').order('project_code').order('source_row'),
+      readAllEntries(db)
+    ]);
+    if(a.error)return bad(a.error.message,500);
+    return NextResponse.json({activities:a.data??[],entries:e.rows,truncated:e.truncated},{headers:{'Cache-Control':'no-store'}});
+  }catch(err){return bad(err instanceof Error?err.message:'อ่านข้อมูลไม่สำเร็จ',500);}
 }
 export async function POST(req:NextRequest){
   const user=await authorize(req);if(!user)return unauthorized();
@@ -40,13 +52,15 @@ export async function POST(req:NextRequest){
     return NextResponse.json({ok:true,count:rows.length});
   }
   if(p.action==='publish'){
-    const [ar,er]=await Promise.all([db.from('monitor_activities').select('*'),db.from('monitor_entries').select('*').limit(3001)]);
-    if(ar.error||er.error)return bad(ar.error?.message??er.error?.message??'อ่านข้อมูลไม่ได้',500);
+    let er;
+    try{er=await readAllEntries(db);}catch(ex){return bad(ex instanceof Error?ex.message:'อ่านรายการเบิกจ่ายไม่ครบ',500);}
+    const ar=await db.from('monitor_activities').select('*');
+    if(ar.error)return bad(ar.error.message,500);
     if(!(ar.data?.length))return bad('ยังไม่ได้นำเข้าข้อมูลตั้งต้น',409);
-    if((er.data?.length??0)>3000)return bad('มีรายการเบิกจ่ายเกิน 3,000 รายการ ระบบไม่อนุญาตให้เผยแพร่ยอดที่อาจไม่ครบ',409);
+    if(er.truncated)return bad('รายการเบิกจ่ายเกิน 20,000 รายการ กรุณาขยายขอบเขตข้อมูลก่อนเผยแพร่',409);
     const dateParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const dateVals=Object.fromEntries(dateParts.map(p=>[p.type,p.value]));const asOf=`${dateVals.year}-${dateVals.month}-${dateVals.day}`;
     const activities=(ar.data??[]) as MonitorActivity[];
-    const entries=(er.data??[]) as MonitorEntry[];
+    const entries=er.rows;
     const projects=new Map<string,{code:string;name:string;budget:number;po:number;disbursed:number;remaining:number}>();
     const details=activities.filter(a=>a.project_code!=='RESERVE').map(a=>{
       const disbursed=Number(a.baseline_disbursed)+(entries.filter(e=>e.activity_id===a.id&&e.paid_on<=asOf).reduce((sum,e)=>sum+Number(e.amount),0));

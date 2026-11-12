@@ -90,3 +90,93 @@
 @media(max-width:1050px){.ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-hero{grid-template-columns:1fr}.ds-hero-total{max-width:470px}.ds-analysis-grid{grid-template-columns:1fr}}
 @media(max-width:660px){.ds-top{height:auto;padding:10px 0}.ds-top-inner,.ds-content{width:calc(100% - 28px)}.ds-top-inner{align-items:flex-start}.ds-brand small{max-width:190px}.ds-hero{padding:26px 20px;border-radius:15px}.ds-hero h1{font-size:23px}.ds-hero-total strong{font-size:26px}.ds-status-note{align-items:flex-start;flex-wrap:wrap}.ds-status-note a{margin-left:40px}.ds-toolbar{align-items:stretch}.ds-export-controls{width:100%}.ds-export-controls button{flex:1;justify-content:center}.ds-kpis{gap:9px}.ds-kpi{padding:13px}.ds-kpi strong{font-size:20px}.ds-overview-numbers strong{font-size:22px}.ds-panel{padding:17px}.ds-section-head{display:block}.ds-controls{margin-top:13px}.ds-search input{min-width:100px}.ds-footer{display:block}.ds-footer span{display:block;margin-top:5px}}
 @media print{.ds-screen{display:none!important}}
+
+/* v2.5 — legible public reporting on every screen size */
+.ds-wrap{font-size:16px;line-height:1.65}
+.ds-top{height:auto;min-height:82px}
+.ds-top-inner{min-height:82px}
+.ds-brand strong{font-size:18px}
+.ds-brand small{font-size:13px}
+.ds-mark{width:48px;height:48px}
+.ds-top nav a{font-size:15px;min-height:44px}
+.ds-kicker{font-size:12px}
+.ds-hero h1{font-size:clamp(27px,2.9vw,39px)}
+.ds-hero p{font-size:16px}
+.ds-hero-meta{font-size:14px}
+.ds-hero-total>span,.ds-hero-total small{font-size:15px}
+.ds-hero-total strong{font-size:clamp(28px,2.9vw,38px)}
+.ds-status-note{align-items:flex-start}
+.ds-status-note strong{font-size:15px}
+.ds-status-note p{font-size:14px}
+.ds-status-note a{font-size:14px;min-height:44px;display:inline-flex;align-items:center}
+.ds-toolbar label,.ds-toolbar input,.ds-toolbar select,.ds-toolbar button{font-size:14px}
+.ds-toolbar button,.ds-toolbar select,.ds-toolbar input{min-height:44px}
+.ds-kpi span{font-size:14px}
+.ds-kpi strong{font-size:clamp(24px,2.3vw,32px)}
+.ds-kpi small{font-size:13px}
+.ds-overline{font-size:12px}
+.ds-panel h2{font-size:clamp(20px,1.8vw,24px)}
+.ds-mini-tag{font-size:12px}
+.ds-progress>strong{font-size:clamp(35px,3.3vw,44px)}
+.ds-progress-caption span{font-size:13px}
+.ds-overview-numbers span{font-size:13px}
+.ds-overview>p{font-size:13px}
+.ds-section-head p{font-size:13px}
+.ds-segment button,.ds-search input{font-size:14px}
+.ds-table th{font-size:13px}
+.ds-table td{font-size:14px}
+.ds-table td b{font-size:15px}
+.ds-table td small{font-size:13px}
+.ds-footnote,.ds-footer{font-size:12px}
+.ds-toolbar button:focus-visible,.ds-toolbar input:focus-visible,.ds-toolbar select:focus-visible,.ds-controls button:focus-visible,.ds-search input:focus-visible{outline:3px solid #d59b6c;outline-offset:2px}
+.ds-table tbody tr:hover{background:#fbf7f2}
+.ds-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.ds-table{min-width:1000px}
+@media(max-width:1100px){
+.ds-top-inner,.ds-content{width:calc(100% - 36px)}
+.ds-hero{grid-template-columns:1fr}
+.ds-hero-total{max-width:100%}
+.ds-analysis-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+.ds-top-inner,.ds-content{width:calc(100% - 24px)}
+.ds-top-inner{gap:8px}
+.ds-top nav a{font-size:13px}
+.ds-brand strong{font-size:15px}.ds-brand small{font-size:11px}
+.ds-hero{padding:24px 20px;min-height:0;gap:15px}
+.ds-hero h1{font-size:26px}.ds-hero p{font-size:14px}
+.ds-hero-meta{font-size:12px}
+.ds-hero-total{padding:15px 17px}
+.ds-hero-total strong{font-size:29px}
+.ds-status-note{padding:14px;gap:9px}
+.ds-status-note>div:nth-child(2){flex:1 1 calc(100% - 45px)}
+.ds-status-note a{margin-left:35px!important}
+.ds-toolbar{align-items:stretch}
+.ds-view-controls{width:100%}
+.ds-export-controls{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.ds-export-controls button{min-height:49px;white-space:normal;justify-content:center}
+.ds-export-controls .ds-cta{grid-column:1/-1}
+.ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ds-kpi{padding:15px;min-width:0}
+.ds-kpi strong{font-size:clamp(20px,4.7vw,26px)}
+.ds-overview-numbers strong{font-size:25px}
+.ds-overview-numbers span{font-size:11px}
+.ds-panel{padding:17px}
+.ds-segment{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.ds-segment button{padding:11px 7px}
+.ds-search{width:100%}
+.ds-search input{flex:1;min-width:0}
+.ds-table{min-width:0;display:block}
+.ds-table thead{display:none}
+.ds-table tbody{display:grid;gap:12px}
+.ds-table tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 12px;padding:15px;background:#fff;border:1px solid #dfe6e1;border-radius:12px}
+.ds-table td,.ds-table td:first-child,.ds-table td:nth-child(2){padding:0;text-align:left;min-width:0!important;max-width:none!important;border:0;white-space:normal}
+.ds-table td:first-child{grid-column:1/-1;color:#b58362}
+.ds-table td:nth-child(2){grid-column:1/-1;padding-bottom:10px;border-bottom:1px solid #eef1ed}
+.ds-table td:nth-child(n+3){font-size:14px}
+.ds-table td:nth-child(3)::before{content:'งบประมาณ';display:block;font-size:12px;color:#738990}
+.ds-table td:nth-child(4)::before{content:'เบิกจ่ายแล้ว';display:block;font-size:12px;color:#738990}
+.ds-table td:nth-child(5)::before{content:'คงเหลือ';display:block;font-size:12px;color:#738990}
+.ds-table td:nth-child(6)::before{content:'ร้อยละเบิกจ่าย';display:block;font-size:12px;color:#738990}
+.ds-percent{display:block;margin:3px 0 6px;width:100%}
+}

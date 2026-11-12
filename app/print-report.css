@@ -74,3 +74,22 @@
   .pr-activity-table td small{display:block;color:#85918e!important;font-size:7pt;margin-top:1mm}
   .pr-activity-code{display:block;color:#bf7e59!important;font-size:7.1pt;font-weight:700;margin-bottom:1mm}
 }
+
+/* Print readability: larger captions and table text while keeping fixed A4 geometry */
+@media print{
+.pr-page-title h2{font-size:19pt!important}
+.pr-page-title p{font-size:9pt!important}
+.pr-hero h1{font-size:20pt!important}
+.pr-hero h1 small{font-size:14pt!important}
+.pr-stat span{font-size:8.8pt!important}
+.pr-stat b{font-size:15.5pt!important}
+.pr-status-band span{font-size:8pt!important}
+.pr-section-heading h2{font-size:13pt!important}
+.pr-feature-row strong{font-size:9.3pt!important}
+.pr-feature-row small{font-size:7.8pt!important}
+.pr-project-table td{font-size:8.2pt!important;padding:2.7mm 2.1mm!important}
+.pr-activity-table td{font-size:8.4pt!important;padding:3.0mm 2.2mm!important}
+.pr-activity-table td small{font-size:7.7pt!important}
+.pr-table th{font-size:8.2pt!important}
+.pr-footer{font-size:7.2pt!important}
+}

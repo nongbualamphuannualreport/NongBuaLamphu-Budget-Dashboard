@@ -13,3 +13,109 @@
 .mon-wrap .mon-header .mon-actions button:last-child{background:#176e53;border-color:#176e53;color:white}
 .mon-wrap .mon-box{box-shadow:0 4px 18px #0e392409}
 @media print{.mon-release-label{display:none!important}}
+
+/* v2.5 Accessibility-first, cross-device admin */
+.mon-wrap{max-width:1360px;font-size:16px;line-height:1.75;padding:28px clamp(14px,3vw,38px) 70px}
+.mon-header{align-items:flex-start}
+.mon-header h1{font-size:clamp(28px,3vw,36px);line-height:1.4}
+.mon-header>div:first-child{min-width:240px;flex:1}
+.mon-header p,.mon-box p,.mon-muted{font-size:14px!important;line-height:1.75}
+.mon-wrap .mon-box{border-radius:18px;padding:clamp(17px,2.4vw,28px)}
+.mon-box h2{font-size:clamp(20px,2vw,24px);line-height:1.4}
+.mon-kpis{gap:14px}
+.mon-kpi{padding:20px}
+.mon-kpi span{font-size:14px}
+.mon-kpi strong{font-size:clamp(21px,2.4vw,30px);overflow-wrap:anywhere}
+.mon-kpi small{font-size:13px}
+.mon-wrap button,.mon-wrap input,.mon-wrap select{font-size:15px;min-height:44px}
+.mon-wrap button{padding:10px 15px;line-height:1.55}
+.mon-wrap button:focus-visible,.mon-wrap input:focus-visible,.mon-wrap select:focus-visible{outline:3px solid #dfa775;outline-offset:2px}
+.mon-wrap input,.mon-wrap select{padding:10px 12px}
+.mon-actions{justify-content:flex-start}
+.mon-actions button{font-weight:700}
+.mon-actions button:hover:not(:disabled){background:#e5f1ea}
+.mon-actions button:last-child{background:#196d54;color:white}
+.mon-wrap .mon-login-card{gap:17px}
+.mon-wrap.mon-login{width:min(550px,calc(100% - 20px));max-width:550px}
+.mon-login-card label{font-size:15px}
+.mon-login-card input{font-size:16px}
+.mon-tabs button,.mon-history button{font-size:14px}
+.mon-controls label,.mon-form label{font-size:14px}
+.mon-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.mon-scroll table{min-width:850px}
+.mon-scroll th,.mon-scroll td{font-size:14px;line-height:1.55;padding:13px 14px}
+.mon-scroll td small{font-size:12px}
+.mon-project-toggle{padding:14px 16px!important;min-height:70px!important;font-size:15px!important;gap:12px}
+.mon-project-toggle span:first-child{max-width:60%;font-weight:700}
+.mon-project-toggle span:last-child{color:#375b4f;font-weight:500}
+.mon-project-actions,.mon-row-actions,.mon-master-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mon-project-actions{padding:11px 14px;background:#f4f8f5}
+.mon-project-actions button,.mon-row-actions button{font-size:13px!important;min-height:38px!important;padding:7px 11px!important}
+.mon-row-actions{flex-wrap:nowrap}
+.mon-master{scroll-margin-top:16px;border-color:#bfd8c8!important;background:#f9fdfa!important}
+.mon-master-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:17px 0}
+.mon-master-grid label{display:flex;flex-direction:column;gap:7px;font-size:14px;font-weight:700;color:#395a4e}
+.mon-master-grid label.mon-wide{grid-column:span 2}
+.mon-master-grid input{width:100%;background:#fff}
+.mon-section-tabs{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;padding:9px;background:#eaf1ed;border-radius:14px;margin:10px 0 19px}
+.mon-section-tabs button{flex:1 1 185px;background:transparent;border:0!important;font-size:15px!important;font-weight:700;white-space:normal}
+.mon-section-tabs button.active{background:#196d54!important;color:white!important}
+.mon-print-title h2{font-size:22px}
+.mon-print-title p{font-size:14px}
+.mon-project{margin:14px 0}
+.mon-history{gap:10px}
+.mon-history button{min-height:46px}
+.mon-form{grid-template-columns:minmax(0,2fr) minmax(140px,1fr) minmax(140px,1fr)}
+.mon-form label{min-width:0}
+.mon-form input,.mon-form select{min-width:0}
+.mon-search{max-width:100%;min-width:230px;width:min(100%,340px)}
+.mon-footer{font-size:12px}
+@media(max-width:1024px){
+.mon-header{flex-direction:column}
+.mon-header>div{width:100%}
+.mon-header .mon-actions{width:100%}
+.mon-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mon-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mon-form label:first-child,.mon-form .mon-wide{grid-column:span 2}
+.mon-project-toggle span:first-child{max-width:100%}
+}
+@media(max-width:680px){
+.mon-wrap{padding:18px 12px 48px;font-size:16px}
+.mon-header h1{font-size:26px}
+.mon-header p{font-size:13px}
+.mon-wrap .mon-box{padding:17px 15px;margin:12px 0}
+.mon-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+.mon-actions button{min-width:0;font-size:13px!important;white-space:normal}
+.mon-header .mon-actions button:last-child{grid-column:1/-1}
+.mon-filters{align-items:stretch}
+.mon-controls{width:100%}
+.mon-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+.mon-tabs button{padding:11px 4px}
+.mon-controls label{width:100%;display:flex;align-items:center;justify-content:space-between;gap:9px}
+.mon-controls input{flex:1;max-width:200px}
+.mon-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mon-kpi{padding:13px;min-width:0}
+.mon-kpi strong{font-size:clamp(17px,4.6vw,22px)}
+.mon-kpi span{font-size:12px}
+.mon-project-toggle{flex-direction:column;align-items:flex-start!important}
+.mon-project-toggle span{width:100%;max-width:100%!important;white-space:normal}
+.mon-master-grid{grid-template-columns:1fr}
+.mon-master-grid label.mon-wide{grid-column:1}
+.mon-form{display:grid;grid-template-columns:1fr}
+.mon-form label:first-child,.mon-form .mon-wide{grid-column:1}
+.mon-form label{margin:0}
+.mon-master-actions{width:100%}
+.mon-master-actions button,.mon-master-actions input{width:100%}
+.mon-scroll table{min-width:750px}
+.mon-entries-history .mon-scroll table{min-width:720px}
+.mon-history button{flex:1 1 140px}
+}
+@media print{
+.mon-section-tabs,.mon-master,.mon-project-actions,.mon-master-actions{display:none!important}
+.mon-wrap{font-size:10pt!important}
+.mon-wrap .mon-box{box-shadow:none;border-color:#ddd;padding:10px}
+.mon-kpi span{font-size:9pt}.mon-kpi strong{font-size:15pt}
+.mon-print-title h2{font-size:16pt}
+.mon-scroll table{min-width:0}
+.mon-scroll th,.mon-scroll td{font-size:8pt;padding:5px}
+}
