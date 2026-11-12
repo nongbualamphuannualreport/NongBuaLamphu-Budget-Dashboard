@@ -119,3 +119,10 @@
 .mon-scroll table{min-width:0}
 .mon-scroll th,.mon-scroll td{font-size:8pt;padding:5px}
 }
+
+.mon-major-row td{background:#eaf2ed!important;color:#2d634d!important;padding:16px 14px!important}
+.mon-major-row b{font-size:16px;display:block}
+.mon-major-row small{display:block;color:#668a76;font-size:12px;margin-top:4px}
+.mon-subactivity td:first-child{padding-left:25px!important;border-left:3px solid #c6dfcf}
+.mon-subactivity td:first-child b::before{content:'↳ ';color:#9dbfa8}
+@media(max-width:680px){.mon-major-row td{padding:14px 12px!important}.mon-major-row b{font-size:14px}.mon-subactivity td:first-child{padding-left:15px!important}}

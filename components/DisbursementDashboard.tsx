@@ -6,6 +6,7 @@ import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
 import { moneyTH, percentTH } from '@/lib/disbursement';
 import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import { ExecutivePrintReport } from './ExecutivePrintReport';
+import { ProjectHierarchy } from './ProjectHierarchy';
 
 type PrintMode = 'summary' | 'full';
 const thaiDate = (value:string) => {
@@ -90,15 +91,15 @@ export function DisbursementDashboard(){
             </section>
             <section className="ds-panel ds-overview"><div className="ds-panel-head"><div><span className="ds-overline">PROJECT STATUS</span><h2>ภาพรวมรายโครงการ</h2></div></div>
               <div className="ds-overview-numbers"><div><strong>{totalProjects}</strong><span>โครงการทั้งหมด</span></div><div><strong>{active}</strong><span>เริ่มเบิกจ่ายแล้ว</span></div><div><strong>{totalProjects-active}</strong><span>ยังไม่เบิกจ่าย</span></div></div>
-              <p>รายละเอียดและชื่อหน่วยดำเนินการสามารถค้นหาได้ในตารางด้านล่าง</p>
+              <p>กดเลือกโครงการเพื่อดูโครงสร้างกิจกรรมหลัก กิจกรรมย่อย และรายละเอียดหน่วยดำเนินการ</p>
             </section>
           </div>
-          <section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">DETAILED REPORT</span><h2>ผลการเบิกจ่ายรายโครงการและกิจกรรม</h2><p>ตัวเลขเป็นยอดสะสม และไม่นับยอดกิจกรรมซ้ำกับยอดระดับโครงการ</p></div><div className="ds-controls"><div className="ds-segment"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button></div><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / หน่วยงาน"/></label></div></div>
-            <div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>โครงการ / กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.code==='RESERVE'?'เงินเหลือจ่าย':p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>
+          <section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">DETAILED REPORT</span><h2>ผลการเบิกจ่ายรายโครงการและกิจกรรม</h2><p>ตัวเลขเป็นยอดสะสม และไม่นับยอดกิจกรรมซ้ำกับยอดระดับโครงการ</p></div><div className="ds-controls"><div className="ds-segment"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.filter(p=>p.code!=='RESERVE').length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button></div><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></label></div></div>
+            {view==='projects'?<ProjectHierarchy report={report} search={search}/>:<div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>}
             <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
           </section>
         </>}
-        <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>Budget Monitor v2.4</span></footer>
+        <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>Budget Monitor v2.6</span></footer>
       </div>
     </div>
     {report&&<ExecutivePrintReport report={report} preview={preview} mode={printMode}/>}
