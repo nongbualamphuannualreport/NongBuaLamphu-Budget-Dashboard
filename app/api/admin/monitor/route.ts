@@ -73,7 +73,13 @@ export async function POST(req:NextRequest){
       old.budget+=Number(a.budget);old.disbursed+=cumulative;old.remaining+=Number(a.budget)-cumulative;projects.set(a.project_code,old);
     }
     const ps=[...projects.values()];const totals={budget:ps.reduce((a,x)=>a+x.budget,0),po:0,disbursed:ps.reduce((a,x)=>a+x.disbursed,0),spent:ps.reduce((a,x)=>a+x.disbursed,0),surplus:0,remaining:ps.reduce((a,x)=>a+x.remaining,0)};
-    if(Math.abs(totals.budget-52744500)>0.01)return bad('งบประมาณรวมไม่ตรงกับบัญชีตั้งต้น 52,744,500 บาท หยุดเผยแพร่เพื่อป้องกันข้อมูลผิด',422);
+    const budgetChanged=Math.abs(totals.budget-52744500)>0.01;
+    const budgetReference=typeof p.budget_reference==='string'?p.budget_reference.trim().slice(0,250):'';
+    if(budgetChanged&&(!p.approve_budget_change||budgetReference.length<5))return bad('ยอดรวมเปลี่ยนจากบัญชีตั้งต้น กรุณาตรวจเอกสารอนุมัติปรับงบประมาณและยืนยันเลขที่เอกสารก่อนเผยแพร่',422);
+    if(budgetChanged){
+      const {error:auditError}=await db.from('monitor_entry_audit').insert({entry_id:crypto.randomUUID(),action:'update',by_user:user.id,before_value:{entity:'approved-budget-total',original_budget:52744500},after_value:{entity:'approved-budget-total',new_budget:totals.budget,reference:budgetReference,as_of_date:asOf}});
+      if(auditError)return bad('ไม่สามารถบันทึกหลักฐานการอนุมัติปรับวงเงิน: '+auditError.message,500);
+    }
     const report={fiscal_year:2570,as_of_date:asOf,report_type:'disbursement',source_file:'ข้อมูลจากรายการเบิกจ่ายรายกิจกรรมย่อย ณ '+asOf,totals,projects:ps,activities:details};
     const {error}=await db.from('disbursement_reports').upsert({as_of_date:asOf,published:true,report,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'as_of_date'});
     if(error)return bad(error.message,500);
