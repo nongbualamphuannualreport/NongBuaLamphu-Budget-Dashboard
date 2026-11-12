@@ -9,7 +9,7 @@ export const dynamic='force-dynamic';
 const fmt=(n:number)=>new Intl.NumberFormat('th-TH',{maximumFractionDigits:2}).format(n||0);
 const percent=(a:number,b:number)=>b>0?(a/b*100).toFixed(2):'0.00';
 const thaiDate=(date:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(date+'T12:00:00+07:00'));
-const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const today=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const v=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${v.year}-${v.month}-${v.day}`;};
 const navy:[number,number,number]=[27,46,72],green:[number,number,number]=[27,112,82],muted:[number,number,number]=[103,122,132],cream:[number,number,number]=[248,240,231],orange:[number,number,number]=[194,119,70],border:[number,number,number]=[222,229,228];
 
 async function buildPdf(report:DisbursementReport,preview:boolean,mode:'summary'|'full'):Promise<Blob>{
