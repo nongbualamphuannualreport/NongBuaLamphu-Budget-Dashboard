@@ -27,7 +27,7 @@ export default async function ReportPage({searchParams}:{searchParams:Promise<{m
        <strong>{moneyTH(report.totals.budget)} <small>บาท</small></strong>
      </section>
      <div className="mr-date"><strong>วันที่จัดทำรายงาน {todayTH()}</strong><span>ข้อมูลเบิกจ่าย ณ {dateTH(report.as_of_date)}</span></div>
-     {preview&&<p className="mr-warning">ฉบับร่าง · ข้อมูลยังไม่ผ่านการยืนยันเผยแพร่</p>}
+     
      <section className="mr-stat-grid">
        <div><span>เบิกจ่ายสะสม</span><strong>{moneyTH(report.totals.disbursed)}</strong><small>บาท</small></div>
        <div><span>คงเหลือยังไม่เบิกจ่าย</span><strong>{moneyTH(report.totals.remaining)}</strong><small>บาท</small></div>

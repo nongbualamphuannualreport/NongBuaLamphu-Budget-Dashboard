@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
 import { moneyTH, percentTH } from '@/lib/disbursement';
-import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import { BarChart3, CalendarDays, Download, FileSpreadsheet, FileText, LockKeyhole, RefreshCw, Search } from 'lucide-react';
 
 import { ProjectHierarchy } from './ProjectHierarchy';
 
@@ -66,11 +66,11 @@ export function DisbursementDashboard(){
         <section className="ds-hero">
           <div className="ds-hero-text"><div className="ds-kicker"><span/> รายงานงบประมาณจังหวัด ประจำปีงบประมาณ พ.ศ. 2570</div><h1>รายงานผลการเบิกจ่ายงบประมาณ<br/><em>จังหวัดหนองบัวลำภู</em></h1>
             <p>สรุปวงเงินงบประมาณ ผลการเบิกจ่ายสะสม และยอดคงเหลือ พร้อมรายละเอียดจำแนกตามโครงการและกิจกรรมย่อย</p>
-            <div className="ds-hero-meta"><span><CalendarDays size={14}/> {report?'ข้อมูลผลเบิกจ่าย ณ '+thaiDate(report.as_of_date):'กำลังตรวจสอบวันที่รายงาน'}</span><span><ShieldCheck size={14}/> {preview?'ข้อมูลระหว่างตรวจสอบ':'ข้อมูลที่เผยแพร่แล้ว'}</span></div>
+            <div className="ds-hero-meta"><span><CalendarDays size={14}/> {report?'ข้อมูลผลเบิกจ่าย ณ '+thaiDate(report.as_of_date):'กำลังตรวจสอบวันที่รายงาน'}</span></div>
           </div>
           <div className="ds-hero-total"><span>งบประมาณปี 2570</span><strong>{report?moneyTH(report.totals.budget):'—'}</strong><small>บาท · {totalProjects} โครงการ</small><div className="ds-hero-ring"/></div>
         </section>
-        {preview&&report&&<div className="ds-status-note" role="status"><div className="ds-status-icon">!</div><div><strong>ข้อมูลตั้งต้น ณ {thaiDate(report.as_of_date)} — ยังไม่ยืนยันเผยแพร่</strong><p>ข้อมูลชุดนี้อยู่ระหว่างการตรวจสอบ โปรดตรวจสอบความถูกต้องก่อนนำไปใช้อ้างอิงในรายงานทางราชการ</p></div><Link href="/admin">ไปหลังบ้าน</Link></div>}
+
         <div className="ds-toolbar">
           <div className="ds-view-controls"><label>ช่วงข้อมูล <select aria-label="เลือกช่วงรายงาน" value={date?'history':'latest'} onChange={e=>{if(e.target.value==='latest')setDate('');else if(!date&&report)setDate(report.as_of_date);}}><option value="latest">ข้อมูลล่าสุด</option><option value="history">ข้อมูลย้อนหลัง</option></select></label>
             {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}

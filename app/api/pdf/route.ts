@@ -1,5 +1,6 @@
 import {NextRequest} from 'next/server';
 import {jsPDF} from 'jspdf';
+import sharp from 'sharp';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {getPublicReport,requestedCutoff} from '@/lib/public-report';
@@ -23,11 +24,35 @@ async function buildPdf(report:DisbursementReport,preview:boolean,mode:'summary'
  doc.addFont('NotoThai-Regular.ttf','NotoThai','normal');
  doc.addFont('NotoThai-Bold.ttf','NotoThai','bold');
  const W=210,M=15,contentW=W-M*2;
+ // jsPDF cannot shape Thai vowels and combining marks correctly on iPhone.
+ // Render Thai glyph runs through SVG/Pango, then embed transparent images into the PDF.
+ // Keep the text layout positions while making the result readable in mobile PDF viewers.
+ type Ink={page:number;value:string;x:number;y:number;size:number;boldFont:boolean;color:[number,number,number];right:boolean};
+ const ink:Ink[]=[];
  const text=(value:string,x:number,y:number,size=10,boldFont=false,color:[number,number,number]=navy)=>{
-  doc.setFont('NotoThai',boldFont?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...color);doc.text(value,x,y);
+  ink.push({page:doc.getCurrentPageInfo().pageNumber,value:String(value),x,y,size,boldFont,color,right:false});
  };
  const right=(value:string,x:number,y:number,size=10,boldFont=false,color:[number,number,number]=navy)=>{
-  doc.setFont('NotoThai',boldFont?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...color);doc.text(value,x,y,{align:'right'});
+  ink.push({page:doc.getCurrentPageInfo().pageNumber,value:String(value),x,y,size,boldFont,color,right:true});
+ };
+ const pxmm=4;
+ const escapeXml=(v:string)=>v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+ const fontStyle=`@font-face{font-family:'NotoTH-Reg';src:url(data:font/ttf;base64,${reg.toString('base64')}) format('truetype')}@font-face{font-family:'NotoTH-Bold';src:url(data:font/ttf;base64,${bold.toString('base64')}) format('truetype')}`;
+ async function embedThaiText(){
+  const pages=new Map<number,Ink[]>();
+  for(const item of ink)pages.set(item.page,[...(pages.get(item.page)??[]),item]);
+  for(const [page,items] of pages){
+   const lines=items.map(item=>{
+    const family=item.boldFont?'NotoTH-Bold':'NotoTH-Reg';
+    const fontPx=item.size*96/72;
+    const hex='#'+item.color.map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('');
+    return `<text x="${(item.x*pxmm).toFixed(2)}" y="${(item.y*pxmm).toFixed(2)}" font-family="${family}" font-size="${fontPx.toFixed(2)}" fill="${hex}" text-anchor="${item.right?'end':'start'}">${escapeXml(item.value)}</text>`;
+   }).join('');
+   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="840" height="1188"><style>${fontStyle}</style>${lines}</svg>`;
+   const png=await sharp(Buffer.from(svg)).png().toBuffer();
+   doc.setPage(page);
+   doc.addImage(new Uint8Array(png),'PNG',0,0,210,297,undefined,'FAST');
+  }
  };
  const wrap=(value:string,width:number,size=10,boldFont=false):string[]=>{
   doc.setFont('NotoThai',boldFont?'bold':'normal');doc.setFontSize(size);
@@ -145,6 +170,7 @@ async function buildPdf(report:DisbursementReport,preview:boolean,mode:'summary'
   }
   footer(page);
  }
+ await embedThaiText();
  return doc.output('blob');
 }
 export async function GET(req:NextRequest){

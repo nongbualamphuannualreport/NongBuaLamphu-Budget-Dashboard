@@ -51,40 +51,6 @@ export async function POST(req:NextRequest){
     if(error)return bad(error.message,500);
     return NextResponse.json({ok:true,count:rows.length});
   }
-  if(p.action==='publish'){
-    let er;
-    try{er=await readAllEntries(db);}catch(ex){return bad(ex instanceof Error?ex.message:'อ่านรายการเบิกจ่ายไม่ครบ',500);}
-    const ar=await db.from('monitor_activities').select('*');
-    if(ar.error)return bad(ar.error.message,500);
-    if(!(ar.data?.length))return bad('ยังไม่ได้นำเข้าข้อมูลตั้งต้น',409);
-    if(er.truncated)return bad('รายการเบิกจ่ายเกิน 20,000 รายการ กรุณาขยายขอบเขตข้อมูลก่อนเผยแพร่',409);
-    const dateParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const dateVals=Object.fromEntries(dateParts.map(p=>[p.type,p.value]));const asOf=`${dateVals.year}-${dateVals.month}-${dateVals.day}`;
-    const activities=(ar.data??[]) as MonitorActivity[];
-    const entries=er.rows;
-    const projects=new Map<string,{code:string;name:string;budget:number;po:number;disbursed:number;remaining:number}>();
-    const details=activities.filter(a=>a.project_code!=='RESERVE').map(a=>{
-      const disbursed=Number(a.baseline_disbursed)+(entries.filter(e=>e.activity_id===a.id&&e.paid_on<=asOf).reduce((sum,e)=>sum+Number(e.amount),0));
-      return {code:a.id,project_code:a.project_code,activity:a.name,agency:a.agency,budget:Number(a.budget),po:0,disbursed,remaining:Number(a.budget)-disbursed};
-    });
-    for(const a of activities){
-      const cumulative=Number(a.baseline_disbursed)+(entries.filter(e=>e.activity_id===a.id&&e.paid_on<=asOf).reduce((sum,e)=>sum+Number(e.amount),0));
-      if(cumulative>Number(a.budget)+0.01)return bad('พบกิจกรรมที่ยอดเบิกจ่ายเกินวงเงิน โปรดตรวจสอบก่อนเผยแพร่',422);
-      const old=projects.get(a.project_code)??{code:a.project_code,name:a.project_name,budget:0,po:0,disbursed:0,remaining:0};
-      old.budget+=Number(a.budget);old.disbursed+=cumulative;old.remaining+=Number(a.budget)-cumulative;projects.set(a.project_code,old);
-    }
-    const ps=[...projects.values()];const totals={budget:ps.reduce((a,x)=>a+x.budget,0),po:0,disbursed:ps.reduce((a,x)=>a+x.disbursed,0),spent:ps.reduce((a,x)=>a+x.disbursed,0),surplus:0,remaining:ps.reduce((a,x)=>a+x.remaining,0)};
-    const budgetChanged=Math.abs(totals.budget-52744500)>0.01;
-    const budgetReference=typeof p.budget_reference==='string'?p.budget_reference.trim().slice(0,250):'';
-    if(budgetChanged&&(!p.approve_budget_change||budgetReference.length<5))return bad('ยอดรวมเปลี่ยนจากบัญชีตั้งต้น กรุณาตรวจเอกสารอนุมัติปรับงบประมาณและยืนยันเลขที่เอกสารก่อนเผยแพร่',422);
-    if(budgetChanged){
-      const {error:auditError}=await db.from('monitor_entry_audit').insert({entry_id:crypto.randomUUID(),action:'update',by_user:user.id,before_value:{entity:'approved-budget-total',original_budget:52744500},after_value:{entity:'approved-budget-total',new_budget:totals.budget,reference:budgetReference,as_of_date:asOf}});
-      if(auditError)return bad('ไม่สามารถบันทึกหลักฐานการอนุมัติปรับวงเงิน: '+auditError.message,500);
-    }
-    const report={fiscal_year:2570,as_of_date:asOf,report_type:'disbursement',source_file:'ข้อมูลจากรายการเบิกจ่ายรายกิจกรรมย่อย ณ '+asOf,totals,projects:ps,activities:details};
-    const {error}=await db.from('disbursement_reports').upsert({as_of_date:asOf,published:true,report,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'as_of_date'});
-    if(error)return bad(error.message,500);
-    return NextResponse.json({ok:true,published:asOf,totals});
-  }
   if(p.action!=='save-entry'&&p.action!=='delete-entry')return bad('คำสั่งไม่ถูกต้อง');
   const id=typeof p.id==='string'?p.id:'';
   let prev:MonitorEntry|null=null;
