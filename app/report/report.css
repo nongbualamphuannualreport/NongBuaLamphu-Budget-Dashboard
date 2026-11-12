@@ -116,3 +116,11 @@
  .mr-paper{border:0;border-radius:0}
  .mr-data-card,.mr-status,.mr-stat-grid>div{break-inside:avoid;page-break-inside:avoid}
 }
+
+/* Legacy report URL: only a single back action; no confusing report-selector buttons. */
+.mr-legacy-page{display:flex;align-items:flex-start;justify-content:center;padding-top:clamp(30px,10vh,92px)}
+.mr-legacy-panel{width:min(540px,100%);border:1px solid #e1e7e3;border-radius:15px;background:#fff;padding:clamp(22px,4vw,34px);box-shadow:0 6px 24px #163d2f0b}
+.mr-legacy-panel h1{font-size:clamp(20px,4vw,25px);line-height:1.5;margin:0 0 10px}
+.mr-legacy-panel p{font-size:15px;line-height:1.75;color:#647c82;margin:0 0 24px}
+.mr-legacy-back{min-height:46px;display:flex;align-items:center;justify-content:center;padding:10px 18px;background:#18694e;color:#fff;border-radius:10px;font-weight:700;text-align:center}
+.mr-legacy-back:focus-visible{outline:3px solid #dbac7d;outline-offset:3px}
