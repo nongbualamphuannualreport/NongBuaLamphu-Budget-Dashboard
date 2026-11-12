@@ -1,0 +1,24 @@
+ชุดล้างโค้ดซ้ำซ้อน (ไม่ใช่โปรเจกต์เต็ม)
+
+สำคัญ: การอัปโหลด ZIP ผ่านหน้า GitHub จะเพิ่ม/เขียนทับไฟล์ แต่ไม่ลบไฟล์เก่า!
+จึงต้องใช้สคริปต์ลบไฟล์ใน local Git clone หรือจะลบรายชื่อใน REMOVE-OLD-FILES.txt ผ่าน GitHub เอง
+
+แนะนำ Windows:
+1. ติดตั้ง Git for Windows
+2. เปิด PowerShell:
+   git clone https://github.com/nongbualamphuannualreport/NongBuaLamphu-Budget-Dashboard.git
+3. แตก ZIP นี้ไว้โฟลเดอร์อื่น เช่น Downloads\NBL-Cleanup
+4. เปิด PowerShell ในโฟลเดอร์ที่แตก ZIP แล้วรัน:
+   powershell -ExecutionPolicy Bypass -File .\APPLY-CLEANUP.ps1 -RepoPath "..\NongBuaLamphu-Budget-Dashboard"
+   (แก้ RepoPath ให้ชี้ไปโฟลเดอร์ที่ clone จริง)
+5. ไปในโฟลเดอร์ repo:
+   git status --short
+   npm install
+   npm run build
+6. ถ้า Build ผ่าน:
+   git add -A
+   git commit -m "cleanup: one budget disbursement admin and public dashboard"
+   git push origin main
+7. รอ Vercel deploy แล้วเปิด / กับ /admin
+
+ไม่แตะฐานข้อมูล Supabase และไม่ต้องตั้ง Environment Variables ใหม่
