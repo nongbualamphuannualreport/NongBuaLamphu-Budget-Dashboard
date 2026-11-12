@@ -1,2 +1,2 @@
-import { MonitorAdmin } from '@/components/MonitorAdmin';
-export default function Page(){return <MonitorAdmin/>;}
+import {redirect} from 'next/navigation';
+export default function MonitorRedirect(){redirect('/admin');}

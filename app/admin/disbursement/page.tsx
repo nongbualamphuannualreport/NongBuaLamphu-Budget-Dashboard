@@ -1,2 +1,2 @@
-import { DisbursementAdmin } from '@/components/DisbursementAdmin';
-export default function Page(){return <DisbursementAdmin/>}
+import {redirect} from 'next/navigation';
+export default function OldAdmin(){redirect('/admin');}
