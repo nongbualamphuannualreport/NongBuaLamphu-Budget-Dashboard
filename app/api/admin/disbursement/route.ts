@@ -9,11 +9,20 @@ async function authorized(req: NextRequest){
 export async function GET(req:NextRequest){
   const user=await authorized(req);
   if(!user) return NextResponse.json({error:'ไม่ได้รับอนุญาต'},{status:403});
+  if(req.nextUrl.searchParams.get('mode')==='list') {
+    const {data,error}=await serverDb().from('disbursement_reports')
+      .select('as_of_date,published,updated_at').order('as_of_date',{ascending:false}).limit(100);
+    if(error)return NextResponse.json({error:'ไม่สามารถอ่านประวัติรายงานได้: '+error.message},{status:500});
+    return NextResponse.json({items:data??[]},{headers:{'Cache-Control':'no-store'}});
+  }
   const date=req.nextUrl.searchParams.get('date');
-  if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return NextResponse.json({error:'วันที่ไม่ถูกต้อง'},{status:400});
-  const {data,error}=await serverDb().from('disbursement_reports').select('report,published').eq('as_of_date',date).maybeSingle();
+  if(date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return NextResponse.json({error:'วันที่ไม่ถูกต้อง'},{status:400});
+  let query=serverDb().from('disbursement_reports').select('report,published,as_of_date');
+  if(date)query=query.eq('as_of_date',date);
+  else query=query.order('as_of_date',{ascending:false}).limit(1);
+  const {data,error}=await query.maybeSingle();
   if(error) return NextResponse.json({error:'อ่านข้อมูลไม่สำเร็จ'},{status:500});
-  return NextResponse.json({report:data?.report??null,published:data?.published??false});
+  return NextResponse.json({report:data?.report??null,published:data?.published??false,date:data?.as_of_date??null},{headers:{'Cache-Control':'no-store'}});
 }
 export async function POST(req:NextRequest){
   const user=await authorized(req);
