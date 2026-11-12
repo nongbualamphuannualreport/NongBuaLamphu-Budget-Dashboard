@@ -1,3 +1,2 @@
-import { Dashboard } from "@/components/Dashboard";
-
-export default function Home() { return <Dashboard />; }
+import { DisbursementDashboard } from '@/components/DisbursementDashboard';
+export default function Page(){return <DisbursementDashboard/>}
