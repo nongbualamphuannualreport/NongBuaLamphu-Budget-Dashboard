@@ -390,3 +390,24 @@
  .ds-shell .ds-top-inner{gap:9px}
  .ds-menu-controls button{min-width:40px;min-height:40px}
 }
+
+
+/* v3.4 — fill available desktop width; preserve comfortable margins and table scrolling. */
+@media screen {
+  .ds-shell,.ds-shell-collapsed{max-width:100%;width:100%;min-width:0}
+  .ds-shell-main{width:100%;min-width:0;max-width:100%}
+  .ds-shell .ds-top-inner,.ds-shell .ds-content{
+    width:calc(100% - clamp(28px,4vw,76px));
+    max-width:none;
+    margin-inline:auto;
+  }
+  .ds-hero,.ds-panel,.ds-kpis,.ds-analysis-grid{min-width:0}
+  .ds-kpi strong{overflow-wrap:anywhere}
+  .ds-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+}
+@media screen and (min-width:1680px){
+  .ds-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media screen and (max-width:900px){
+  .ds-shell .ds-top-inner,.ds-shell .ds-content{width:calc(100% - 28px)}
+}
