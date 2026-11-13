@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isConfigured,serverDb,verifyAdmin} from '@/lib/supabase';
 import {validDate,validateNetLedger,type MonitorEntry,type MonitorActivity} from '@/lib/monitor';
+import {validateCombinedLedger} from '@/lib/po';
 import baseline from '@/data/monitor-baseline.json';
 export const dynamic='force-dynamic';
 async function authorize(req:NextRequest){return isConfigured()?verifyAdmin(req.headers.get('authorization')):null;}
@@ -21,12 +22,14 @@ export async function GET(req:NextRequest){
   if(!await authorize(req))return unauthorized();
   const db=serverDb();
   try{
-    const [a,e]=await Promise.all([
+    const [a,e,poResult]=await Promise.all([
       db.from('monitor_activities').select('*').order('project_code').order('source_row'),
-      readAllEntries(db)
+      readAllEntries(db),
+      db.from('monitor_po_entries').select('*').order('po_on',{ascending:false}).order('id',{ascending:true}).limit(20001)
     ]);
     if(a.error)return bad(a.error.message,500);
-    return NextResponse.json({activities:a.data??[],entries:e.rows,truncated:e.truncated},{headers:{'Cache-Control':'no-store'}});
+    if(poResult.error)return bad('อ่านข้อมูล PO ไม่สำเร็จ: '+poResult.error.message,500);
+    return NextResponse.json({activities:a.data??[],entries:e.rows,poEntries:poResult.data??[],truncated:e.truncated||((poResult.data??[]).length>20000)},{headers:{'Cache-Control':'no-store'}});
   }catch(err){return bad(err instanceof Error?err.message:'อ่านข้อมูลไม่สำเร็จ',500);}
 }
 export async function POST(req:NextRequest){
@@ -64,6 +67,13 @@ export async function POST(req:NextRequest){
     try{validateNetLedger(Number(activity.data.budget),Number(activity.data.baseline_disbursed),String(activity.data.baseline_date),
       (all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})));
     }catch(err){return bad(err instanceof Error?err.message:'ยอดย้อนหลังจะผิดหลังลบ',422);}
+    const poQuery=await db.from('monitor_po_entries').select('po_on,amount,related_payment_id').eq('activity_id',prev.activity_id).limit(20001);
+    if(poQuery.error)return bad(poQuery.error.message,500);
+    if((poQuery.data??[]).some(row=>row.related_payment_id===id))return bad('รายการนี้จ่ายจาก PO แล้ว ไม่อนุญาตให้ลบโดยตรง กรุณาติดต่อผู้ดูแลระบบเพื่อปรับปรุงตามหลักฐาน',422);
+    try{validateCombinedLedger(Number(activity.data.budget),Number(activity.data.baseline_disbursed),String(activity.data.baseline_date),
+      (all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})),
+      (poQuery.data??[]).map(e=>({po_on:String(e.po_on),amount:Number(e.amount)})));
+    }catch(err){return bad(err instanceof Error?err.message:'ยอดผูกพัน PO ไม่ถูกต้องหลังลบ',422);}
     const d=await db.from('monitor_entries').delete().eq('id',id);if(d.error)return bad(d.error.message,500);
     await db.from('monitor_entry_audit').insert({entry_id:id,action:'delete',before_value:prev,by_user:user.id});
     return NextResponse.json({ok:true});
@@ -86,13 +96,27 @@ export async function POST(req:NextRequest){
     validateNetLedger(Number(a.data.budget),Number(a.data.baseline_disbursed),String(a.data.baseline_date),
       [...(all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})),{paid_on,amount}]);
   }catch(err){return bad(err instanceof Error?err.message:'ยอดสะสมไม่ถูกต้อง',422);}
+  const poEntries=await db.from('monitor_po_entries').select('po_on,amount,related_payment_id').eq('activity_id',activity_id).limit(20001);
+  if(poEntries.error)return bad('ตรวจสอบ PO ไม่สำเร็จ: '+poEntries.error.message,500);
+  if((poEntries.data??[]).length>20000)return bad('ประวัติ PO เกินขอบเขตตรวจสอบ',422);
+  if(prev&&(poEntries.data??[]).some(row=>row.related_payment_id===id))
+    return bad('รายการจ่ายจาก PO แก้ไขตรงนี้ไม่ได้ กรุณาติดต่อผู้ดูแลระบบเพื่อปรับรายการตามหลักฐาน',422);
+  try{
+    validateCombinedLedger(Number(a.data.budget),Number(a.data.baseline_disbursed),String(a.data.baseline_date),
+      [...(all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})),{paid_on,amount}],
+      (poEntries.data??[]).map(e=>({po_on:String(e.po_on),amount:Number(e.amount)})));
+  }catch(err){return bad(err instanceof Error?err.message:'ยอด PO และเบิกจ่ายรวมกันเกินวงเงิน',422);}
   if(prev&&prev.activity_id!==activity_id){
     const oldActivity=await db.from('monitor_activities').select('budget,baseline_disbursed,baseline_date').eq('id',prev.activity_id).maybeSingle();
     const oldRows=await db.from('monitor_entries').select('id,paid_on,amount').eq('activity_id',prev.activity_id).limit(20001);
-    if(oldActivity.error||!oldActivity.data||oldRows.error)return bad('ตรวจสอบกิจกรรมเดิมไม่ได้',500);
+    const oldPo=await db.from('monitor_po_entries').select('po_on,amount').eq('activity_id',prev.activity_id).limit(20001);
+    if(oldActivity.error||!oldActivity.data||oldRows.error||oldPo.error)return bad('ตรวจสอบกิจกรรมเดิมไม่ได้',500);
     if((oldRows.data??[]).length>20000)return bad('รายการเก่าเกินขอบเขตการตรวจสอบ',422);
     try{validateNetLedger(Number(oldActivity.data.budget),Number(oldActivity.data.baseline_disbursed),String(oldActivity.data.baseline_date),
       (oldRows.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})));
+      validateCombinedLedger(Number(oldActivity.data.budget),Number(oldActivity.data.baseline_disbursed),String(oldActivity.data.baseline_date),
+      (oldRows.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})),
+      (oldPo.data??[]).map(e=>({po_on:String(e.po_on),amount:Number(e.amount)})));
     }catch(err){return bad(err instanceof Error?err.message:'ยอดกิจกรรมเดิมจะผิด',422);}
   }
   const record={activity_id,paid_on,amount,reference:String(p.reference??'').slice(0,300),note:String(p.note??'').slice(0,1000),updated_at:new Date().toISOString()};

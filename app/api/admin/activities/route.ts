@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isConfigured, serverDb, verifyAdmin } from '@/lib/supabase';
+import {validateCombinedLedger} from '@/lib/po';
 
 export const dynamic = 'force-dynamic';
 const bad = (error:string,status=400) => NextResponse.json({error},{status});
@@ -70,6 +71,15 @@ export async function POST(req:NextRequest){
       if(!name||budget===null)return bad('กรุณากรอกชื่อกิจกรรมและวงเงินงบประมาณที่ถูกต้อง');
       const paid=Number(original.baseline_disbursed)+await payments(db,id);
       if(budget+0.005<paid)return bad('วงเงินใหม่ต่ำกว่ายอดเบิกจ่ายสะสม '+paid.toLocaleString('th-TH')+' บาท',422);
+      const [e,po]=await Promise.all([
+        db.from('monitor_entries').select('paid_on,amount').eq('activity_id',id).limit(20001),
+        db.from('monitor_po_entries').select('po_on,amount').eq('activity_id',id).limit(20001)
+      ]);
+      if(e.error||po.error||((e.data??[]).length>20000)||((po.data??[]).length>20000))return bad('ไม่สามารถตรวจสอบยอด PO ทั้งหมดได้',500);
+      try{validateCombinedLedger(budget,Number(original.baseline_disbursed),String(original.baseline_date),
+        (e.data??[]).map(v=>({paid_on:String(v.paid_on),amount:Number(v.amount)})),
+        (po.data??[]).map(v=>({po_on:String(v.po_on),amount:Number(v.amount)})));}
+      catch(err){return bad(err instanceof Error?err.message:'วงเงินต่ำกว่ายอด PO รวมกับยอดเบิกจ่าย',422);}
       const {data,error}=await db.from('monitor_activities').update({name,agency,budget}).eq('id',id).select('*').single();
       if(error)return bad(error.message,500);
       const warning=await audit(db,'update',original,data,user.id);
@@ -82,9 +92,12 @@ export async function POST(req:NextRequest){
       if(readError)return bad(readError.message,500);
       if(!original)return bad('ไม่พบกิจกรรมนี้',404);
       if(original.project_code==='RESERVE')return bad('ไม่อนุญาตให้ลบหมวดเงินคงเหลือจากการโอนเปลี่ยนแปลง',422);
-      const {count,error:countError}=await db.from('monitor_entries').select('id',{count:'exact',head:true}).eq('activity_id',id);
-      if(countError)return bad(countError.message,500);
-      if(Number(original.baseline_disbursed)>0||(count??0)>0)return bad('กิจกรรมนี้มียอดตั้งต้นหรือประวัติการเบิกจ่ายแล้ว จึงไม่อนุญาตให้ลบ กรุณาแก้ไขข้อมูลแทน',422);
+      const [{count,error:countError},{count:poCount,error:poError}]=await Promise.all([
+        db.from('monitor_entries').select('id',{count:'exact',head:true}).eq('activity_id',id),
+        db.from('monitor_po_entries').select('id',{count:'exact',head:true}).eq('activity_id',id)
+      ]);
+      if(countError||poError)return bad('ตรวจสอบประวัติกิจกรรมไม่สำเร็จ',500);
+      if(Number(original.baseline_disbursed)>0||(count??0)>0||(poCount??0)>0)return bad('กิจกรรมนี้มียอดตั้งต้นหรือประวัติการเบิกจ่ายแล้ว จึงไม่อนุญาตให้ลบ กรุณาแก้ไขข้อมูลแทน',422);
       const {error}=await db.from('monitor_activities').delete().eq('id',id);
       if(error)return bad(error.message,500);
       const warning=await audit(db,'delete',original,null,user.id);

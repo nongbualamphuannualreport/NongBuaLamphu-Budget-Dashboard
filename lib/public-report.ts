@@ -2,6 +2,7 @@ import 'server-only';
 import {isConfigured,serverDb} from '@/lib/supabase';
 import type {DisbursementReport} from '@/lib/disbursement';
 import type {MonitorActivity,MonitorEntry} from '@/lib/monitor';
+import type {MonitorPoEntry} from '@/lib/po';
 import {buildCurrentReport} from '@/lib/public-report-build';
 import seed from '@/data/disbursement-latest.json';
 
@@ -32,6 +33,18 @@ async function readEntries(asOf:string):Promise<Pick<MonitorEntry,'activity_id'|
  }
  throw Error('จำนวนรายการเบิกจ่ายเกินขอบเขตที่ระบบรองรับ กรุณาติดต่อผู้ดูแลระบบ');
 }
+async function readPoEntries(asOf:string):Promise<Pick<MonitorPoEntry,'activity_id'|'po_on'|'amount'>[]>{
+ const db=serverDb();
+ const out:Pick<MonitorPoEntry,'activity_id'|'po_on'|'amount'>[]=[];
+ for(let offset=0;offset<20000;offset+=500){
+  const {data,error}=await db.from('monitor_po_entries').select('activity_id,po_on,amount').lte('po_on',asOf)
+   .order('po_on',{ascending:true}).order('id',{ascending:true}).range(offset,offset+499);
+  if(error)throw Error('อ่านข้อมูล PO ไม่สำเร็จ: '+error.message);
+  out.push(...(data??[]).map(x=>({activity_id:String(x.activity_id),po_on:String(x.po_on),amount:Number(x.amount)})));
+  if((data??[]).length<500)return out;
+ }
+ throw Error('จำนวนรายการ PO เกินขอบเขตที่ระบบรองรับ');
+}
 function referenceReport(cutoff:string):PublicReportResult{
  return {report:cutoff>=seed.as_of_date?seed as DisbursementReport:null,preview:true};
 }
@@ -48,7 +61,7 @@ export async function getPublicReport(cutoff:string):Promise<PublicReportResult>
  }
  if(!data?.length)return referenceReport(asOf);
  if(asOf<'2026-11-10')return {report:null,preview:false};
- const entries=await readEntries(asOf);
- const report=buildCurrentReport(data as MonitorActivity[],entries,asOf);
+ const [entries,poEntries]=await Promise.all([readEntries(asOf),readPoEntries(asOf)]);
+ const report=buildCurrentReport(data as MonitorActivity[],entries,asOf,poEntries);
  return {report,preview:false};
 }

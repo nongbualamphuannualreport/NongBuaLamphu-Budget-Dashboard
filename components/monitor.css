@@ -159,3 +159,11 @@
 .mon-modal-panel .mon-master-grid label.mon-wide,.mon-modal-panel .mon-form label:first-child,.mon-modal-panel .mon-form .mon-wide{grid-column:1}
 }
 @media print{.mon-modal-backdrop{display:none!important}}
+
+.mon-po-value{color:#956c39!important;font-weight:700}
+.mon-row-actions .mon-po-pay{background:#eef5f0;color:#175d48;font-weight:700}
+
+.apdf-po-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;
+ border:1px solid #d6dfeb;border-left:4px solid #42658a;border-radius:8px;
+ background:#f1f5f9;padding:11px 14px;margin:17px 0 14px;color:#294a66;font-size:11px}
+.apdf-po-summary b{font-size:14px;white-space:nowrap}

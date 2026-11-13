@@ -7,10 +7,10 @@ import {fmt} from '@/lib/monitor';
 import './admin-pdf-export.css';
 import {paginatePdfProjectDetails,paginateMeasuredPdfDetails,type PdfDetailItem} from '@/lib/pdf-project-pages';
 
-type Row=MonitorActivity & {cumulative:number;period:number;remaining:number};
+type Row=MonitorActivity & {cumulative:number;period:number;po:number;remaining:number};
 type Report={
  from:string;to:string;asOf:string;rows:Row[];
- total:{budget:number;disbursed:number;period:number;remaining:number}
+ total:{budget:number;po:number;disbursed:number;period:number;remaining:number}
 };
 type Project={code:string;name:string;budget:number;paid:number;remaining:number};
 type Props={report:Report;mode:MonitorPeriod;enabled:boolean;entries:MonitorEntry[]};
@@ -171,6 +171,10 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
           <b>−{fmt(periodReductionAmount)}</b><span>บาท</span>
         </div>
       </div>}
+    {report.total.po>0&&<div className="apdf-po-summary">
+      <strong>PO คงค้าง (ยอดผูกพัน ยังไม่เบิกจ่าย)</strong>
+      <b>{fmt(report.total.po)} บาท</b>
+    </div>}
     <div className="apdf-section-heading"><h2>ความก้าวหน้าการเบิกจ่าย</h2><strong>{pct.toFixed(2)}%</strong></div>
     <div className="apdf-progress"><i style={{width:pct+'%'}}/></div>
     <div className="apdf-overview">
@@ -214,6 +218,8 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
               <div>
                 <strong>{item.row.name}</strong>
                 {item.row.agency&&<small>{item.row.agency}</small>}
+                {report.rows.find(a=>a.id===item.row.id)?.po>0&&
+                  <small>PO คงค้าง {fmt(report.rows.find(a=>a.id===item.row.id)?.po??0)} บาท</small>}
               </div>
             </div>
             <div className="apdf-detail-figures">

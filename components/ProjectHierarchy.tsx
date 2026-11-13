@@ -23,9 +23,9 @@ const sourceRow=(row:Row):number=>{
   return match?Number(match[1]):Number.MAX_SAFE_INTEGER;
 };
 const cleanName=(name:string)=>name.replace(/^\s*กิจกรรม(?:ย่อย)?\s*:\s*/,'').trim();
-function sum(rows:Row[],field:'budget'|'disbursed'|'remaining'){return rows.reduce((total,row)=>total+(Number(row[field])||0),0);}
-function Amounts({budget,paid,remaining}:{budget:number;paid:number;remaining:number}){
-  return <div className="ph-amounts"><span><small>งบประมาณ</small><strong>{money(budget)}</strong></span><span><small>เบิกจ่ายแล้ว</small><strong className="ph-paid">{money(paid)}</strong></span><span><small>คงเหลือ</small><strong>{money(remaining)}</strong></span><span><small>ร้อยละ</small><strong>{percentTH(paid,budget)}%</strong></span></div>;
+function sum(rows:Row[],field:'budget'|'po'|'disbursed'|'remaining'){return rows.reduce((total,row)=>total+(Number(row[field])||0),0);}
+function Amounts({budget,po,paid,remaining}:{budget:number;po:number;paid:number;remaining:number}){
+  return <div className="ph-amounts"><span><small>งบประมาณ</small><strong>{money(budget)}</strong></span><span><small>PO</small><strong className="ph-po">{money(po)}</strong></span><span><small>เบิกจ่ายแล้ว</small><strong className="ph-paid">{money(paid)}</strong></span><span><small>คงเหลือ</small><strong>{money(remaining)}</strong></span><span><small>ร้อยละ</small><strong>{percentTH(paid,budget)}%</strong></span></div>;
 }
 function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean;onClick:()=>void}){
   const key=String(sourceRow(row));
@@ -36,10 +36,10 @@ function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean
     <button type="button" className="ph-activity-trigger" onClick={onClick} aria-expanded={open}>
       {open?<ChevronDown size={18}/>:<ChevronRight size={18}/>}
       <div className="ph-activity-title"><span>{nested?'กิจกรรมย่อย':'กิจกรรม'}</span><strong>{cleanName(row.activity??row.name??'ไม่ระบุชื่อกิจกรรม')}</strong><small>หน่วยดำเนินการ: {row.agency||detail?.agencyFullName||'ไม่ระบุ'}</small></div>
-      <div className="ph-activity-quick"><b>{money(row.disbursed)} บาท</b><small>เบิกจ่ายแล้ว · {percentTH(row.disbursed,row.budget)}%</small></div>
+      <div className="ph-activity-quick"><b>{money(row.po)} บาท PO</b><small>เบิกจ่าย {money(row.disbursed)} บาท · · {percentTH(row.disbursed,row.budget)}%</small></div>
     </button>
     {open&&<div className="ph-activity-detail">
-      <Amounts budget={row.budget} paid={row.disbursed} remaining={row.remaining}/>
+      <Amounts budget={row.budget} po={row.po} paid={row.disbursed} remaining={row.remaining}/>
       <div className="ph-source"><FileSpreadsheet size={17}/><div><b>เอกสารอ้างอิง</b><p>{detail?`ชีต ${detail.sheet} · ${detail.agencyFullName} · แถว ${detail.agencyRow}`:'รายการที่บันทึกเพิ่มในระบบ / ไม่มีชีตหน่วยงานที่เชื่อมไว้ในไฟล์ตั้งต้น'}{sourceRow(row)!==Number.MAX_SAFE_INTEGER?` · ชีตสรุป แถว ${sourceRow(row)}`:''}</p></div></div>
       {cost&&<section className="ph-costs">
         <div className="ph-costs-head"><h4>รายการค่าใช้จ่ายตามชีตหน่วยงาน</h4><span>ข้อมูลประกอบ</span></div>
@@ -84,18 +84,18 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
     {shown.length===0&&<div className="ph-no-results"><Search size={19}/> ไม่พบโครงการหรือกิจกรรมที่ตรงกับการค้นหา</div>}
     {shown.map(({project,code,rows,nodes})=>{
       const expanded=!!q||opened===code;
-      const tally={budget:sum(rows,'budget'),paid:sum(rows,'disbursed'),remaining:sum(rows,'remaining')};
+      const tally={budget:sum(rows,'budget'),paid:sum(rows,'disbursed'),po:sum(rows,'po'),remaining:sum(rows,'remaining')};
       const discrep=Math.abs(tally.budget-(Number(project.budget)||0))>1.01||Math.abs(tally.paid-(Number(project.disbursed)||0))>1.01;
       return <section className={'ph-project '+(expanded?'is-open':'')} key={code}>
         <button type="button" className="ph-project-trigger" onClick={()=>setOpened(expanded&&!q?'':code)} aria-expanded={expanded}>
           <span className="ph-project-number">{code.replace('P','')}</span>
           <div className="ph-project-name"><strong>{project.name}</strong><small>{nodes.length} กิจกรรมหลัก/รายการ · {rows.length} กิจกรรมและกิจกรรมย่อย</small></div>
-          <div className="ph-project-money"><small>งบประมาณรวม</small><b>{money(project.budget)} บาท</b><small>เบิกจ่าย {money(project.disbursed)} บาท ({percentTH(project.disbursed,project.budget)}%)</small></div>
+          <div className="ph-project-money"><small>งบประมาณรวม</small><b>{money(project.budget)} บาท</b><small>PO {money(project.po)} บาท · เบิกจ่าย {money(project.disbursed)} บาท ({percentTH(project.disbursed,project.budget)}%)</small></div>
           {expanded?<ChevronDown className="ph-chevron" size={22}/>:<ChevronRight className="ph-chevron" size={22}/>}
         </button>
         {expanded&&<div className="ph-project-body">
           {discrep&&<p className="ph-cost-warning">ยอดรวมรายกิจกรรมของโครงการนี้ไม่ตรงกับยอดโครงการ กรุณาตรวจสอบข้อมูลต้นทางก่อนนำไปใช้ออกรายงาน</p>}
-          <Amounts budget={project.budget} paid={project.disbursed} remaining={project.remaining}/>
+          <Amounts budget={project.budget} po={project.po} paid={project.disbursed} remaining={project.remaining}/>
           {nodes.map(node=>{
             if(node.kind==='activity'){const id=String(node.row.code??node.row.activity);return <Activity key={id} row={node.row} nested={false} open={openedActivity===id||!!q} onClick={()=>setOpenedActivity(openedActivity===id?'':id)}/>;}
             const group=node.group;const groupOpen=openedGroup===group.id||!!q;
@@ -106,7 +106,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
                 <b>{money(sum(group.children,'budget'))} บาท</b>
               </button>
               {groupOpen&&<div className="ph-group-body">
-                <div className="ph-group-totals"><span>เบิกจ่ายแล้ว {money(sum(group.children,'disbursed'))} บาท</span><span>คงเหลือ {money(sum(group.children,'remaining'))} บาท</span></div>
+                <div className="ph-group-totals"><span>PO {money(sum(group.children,'po'))} บาท · เบิกจ่ายแล้ว {money(sum(group.children,'disbursed'))} บาท</span><span>คงเหลือ {money(sum(group.children,'remaining'))} บาท</span></div>
                 {group.children.map(child=>{const id=String(child.code??child.activity);return <Activity key={id} row={child} nested open={openedActivity===id||!!q} onClick={()=>setOpenedActivity(openedActivity===id?'':id)}/>;})}
               </div>}
             </section>;

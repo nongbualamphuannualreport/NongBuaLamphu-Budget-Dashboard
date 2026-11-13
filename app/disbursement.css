@@ -299,3 +299,17 @@
  .ds-kpi strong{grid-column:1;grid-row:auto;text-align:left;font-size:23px}
  .ds-kpi small{grid-column:1}
 }
+
+/* FY2570: PO is outstanding encumbrance and is deliberately distinct from cash paid. */
+.ds-po{font-weight:700;color:#98673b!important}
+@media(min-width:761px){.ds-table{min-width:1080px}}
+@media(max-width:760px){
+ .ds-table td:nth-child(4)::before{content:'PO (ยอดผูกพัน)';display:block;font-size:12px;color:#738990}
+ .ds-table td:nth-child(5)::before{content:'เบิกจ่ายแล้ว';display:block;font-size:12px;color:#738990}
+ .ds-table td:nth-child(6)::before{content:'คงเหลือยังไม่เบิกจ่าย';display:block;font-size:12px;color:#738990}
+ .ds-table td:nth-child(7)::before{content:'ร้อยละเบิกจ่าย';display:block;font-size:12px;color:#738990}
+ .ds-table tr{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+ .ds-table td:nth-child(7){grid-column:1/-1}
+ .ph-amounts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.ph-po{color:#916943!important}
