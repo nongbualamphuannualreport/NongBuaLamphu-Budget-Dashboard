@@ -55,10 +55,22 @@ export default function ReserveAdmin(){
   }catch(e){setError(e instanceof Error?e.message:'บันทึกไม่สำเร็จ');}finally{setBusy(false);}
  }
  return <main className="ra-shell">
-  <header className="ra-head"><div><Link href="/admin">← กลับหลังบ้าน</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1><p>กองเงินแยก · ปีงบประมาณ พ.ศ. 2570 · สร้างโครงการเพิ่มเติมจากยอดที่ได้รับอนุมัติให้โอน</p></div><Link href="/reserve">ดูรายงานสาธารณะ</Link></header>
+  <header className="ra-head ra-unified-head">
+    <div className="ra-head-title">
+      <Link className="ra-back-public" href="/">← กลับสู่หน้ารายงานสาธารณะ</Link>
+      <h1>ศูนย์รายงานผลการเบิกจ่าย</h1>
+      <p className="ra-internal-badge">บันทึกและตรวจสอบข้อมูลภายใน</p>
+      <p>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570 · ใช้ยอดเบิกจ่ายรายกิจกรรมย่อยเป็นหลัก</p>
+    </div>
+    {session&&<div className="ra-head-actions">
+      <button type="button" onClick={async()=>{await client?.auth.signOut();setSession(false);setLoaded(false);}}>ออกจากระบบ</button>
+      <button type="button" onClick={()=>void reload()} disabled={busy}>แสดงข้อมูลล่าสุด</button>
+    </div>}
+  </header>
   <div className={"ra-admin-layout"+(!session?" ra-admin-layout-login":"")}>
     {session&&<AdminNavigation active="reserve"/>}
     <div className="ra-admin-main">
+  {session&&<div className="ra-current-view"><strong>ระบบจัดการงบประมาณ / เงินโอนเปลี่ยนแปลง</strong><p>จัดสรรเงิน สร้างโครงการ และติดตามผลเบิกจ่ายจากกองเงินโอนเปลี่ยนแปลง</p></div>}
   {!ready?<p>กำลังตรวจสอบสิทธิ์...</p>:!session?<section className="ra-card"><h2>เข้าสู่ระบบเจ้าหน้าที่</h2><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{if(!client)throw Error('Supabase ยังไม่พร้อม');const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;}catch(e){setError(e instanceof Error?e.message:'เข้าสู่ระบบไม่สำเร็จ');}finally{setBusy(false);}}}><label>อีเมล<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>รหัสผ่าน<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={busy}>เข้าสู่ระบบ</button></form></section>:
   <>
    {error&&<p className="ra-error" role="alert">{error}</p>}{success&&<p className="ra-success" role="status">{success}</p>}
