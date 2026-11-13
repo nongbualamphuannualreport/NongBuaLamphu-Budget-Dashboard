@@ -88,13 +88,13 @@ export function TransferActivityManager({activity,allocatedOn,entries,poEntries,
            {action==='edit'?<div className="ra-form">
              <label className="ra-wide">ชื่อกิจกรรม<input required value={name} maxLength={500} onChange={e=>setName(e.target.value)}/></label>
              <label className="ra-wide">หน่วยดำเนินการ<input value={agency} maxLength={180} onChange={e=>setAgency(e.target.value)}/></label>
-             <p className="ra-wide ra-form-note">วงเงิน {fmt(Number(activity.budget))} บาท อ้างอิงเอกสารจัดสรรเดิม ไม่สามารถเปลี่ยนวงเงินในแบบฟอร์มนี้ได้</p>
+             <p className="ra-wide ra-form-note">วงเงินที่ได้รับอนุมัติ {fmt(Number(activity.budget))} บาท · การแก้ไขวงเงินต้องใช้เอกสารอนุมัติ</p>
            </div>:<div className="ra-form">
              <label>วันที่รายการ<input type="date" required min={allocatedOn<'2026-11-10'?'2026-11-10':allocatedOn} max="2027-09-30" value={date} onChange={e=>setDate(e.target.value)}/></label>
              <label>จำนวนเงิน (บาท)<input type="number" min="0.01" step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)}/></label>
              <label className="ra-wide">เลขที่ PO / สัญญา / เอกสารอ้างอิง<input value={reference} maxLength={300} onChange={e=>setReference(e.target.value)}/></label>
              <label className="ra-wide">หมายเหตุ / เหตุผล<input value={note} maxLength={1000} onChange={e=>setNote(e.target.value)}/></label>
-             <p className="ra-wide ra-form-note">ระบบตรวจสอบยอดเบิกจ่ายรวม PO ไม่ให้เกินวงเงินที่ได้รับจัดสรร และเก็บประวัติการทำรายการ</p>
+             <p className="ra-wide ra-form-note">ยอดผูกพันและเบิกจ่ายรวมกันต้องไม่เกินวงเงินที่ได้รับจัดสรร</p>
            </div>}
            <div className="ra-modal-footer"><button type="button" className="ra-action-light" disabled={busy} onClick={()=>setAction(null)}>ยกเลิก</button><button type="submit" disabled={busy||action==='edit'&&!name.trim()}>{busy?'กำลังบันทึก...':'บันทึกข้อมูล'}</button></div>
          </form>
