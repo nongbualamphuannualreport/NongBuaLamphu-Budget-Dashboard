@@ -72,6 +72,7 @@ export function TransferActivityManager({activity,allocatedOn,entries,poEntries,
      <button type="button" className="ra-action-light" aria-expanded={history} onClick={()=>setHistory(v=>!v)}>{history?'ซ่อนประวัติ':'ดูประวัติ'}</button>
    </div>
    {message&&<p className="ra-success" role="status">{message}</p>}
+   {!action&&error&&<p className="ra-error" role="alert">{error}</p>}
    {history&&<div className="ra-activity-history">
      <h4>ประวัติการเบิกจ่าย</h4>
      {entries.length===0?<p>ยังไม่มีรายการเบิกจ่ายเพิ่ม</p>:<div className="ra-table-wrap"><table><thead><tr><th>วันที่</th><th>จำนวนเงิน (บาท)</th><th>เอกสารอ้างอิง</th><th>จัดการ</th></tr></thead><tbody>{[...entries].sort((a,b)=>b.paid_on.localeCompare(a.paid_on)).map(e=><tr key={e.id}><td>{e.paid_on}</td><td>{e.amount<0?'−':''}{fmt(Math.abs(Number(e.amount)))}</td><td>{e.reference||e.note||'—'}</td><td><button type="button" className="ra-action-light" onClick={()=>open(e.amount<0?'reduction':'payment',e)}>แก้ไข</button> <button type="button" className="ra-action-light" onClick={()=>void remove(e)}>ลบ</button></td></tr>)}</tbody></table></div>}
