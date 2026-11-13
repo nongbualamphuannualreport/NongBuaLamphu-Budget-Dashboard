@@ -31,3 +31,38 @@
 @media(max-width:1200px){.ra-admin-layout{grid-template-columns:230px minmax(0,1fr);gap:14px}}
 @media(max-width:1000px){.ra-admin-layout{grid-template-columns:1fr}.ra-admin-main .ra-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.ra-admin-main .ra-kpis{grid-template-columns:1fr}}
+
+
+/* Reallocation creation is intentionally a single clear action, opening a modal. */
+.ra-allocation-toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;border:1px solid #d9e7df;border-radius:16px;background:linear-gradient(110deg,#f4faf6,#fff);margin:16px 0 20px}
+.ra-allocation-toolbar h2{font-size:20px;line-height:1.5;margin:0;color:#1e523f}
+.ra-allocation-toolbar p{font-size:13px;line-height:1.65;color:#71848b;margin:5px 0 0}
+.ra-shell .ra-create-button{background:#196c52;color:#fff;flex:none;box-shadow:0 3px 9px #12533c1c}
+.ra-create-button:hover:not(:disabled){background:#11553e}
+.ra-modal-backdrop{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;background:rgba(12,30,28,.65);padding:20px}
+.ra-modal-dialog{width:min(820px,100%);max-height:calc(100dvh - 40px);display:flex;flex-direction:column;border-radius:20px;background:white;overflow:hidden;box-shadow:0 28px 85px #061e1c55;outline:none}
+.ra-modal-header{display:flex;align-items:start;justify-content:space-between;gap:15px;padding:22px 27px;background:linear-gradient(110deg,#f4faf6,#eaf4ee);border-bottom:1px solid #dce9e0;flex:none}
+.ra-modal-header h2{font-size:clamp(20px,2.3vw,25px);line-height:1.4;margin:5px 0;color:#214f40}
+.ra-modal-header p{font-size:13px;line-height:1.55;margin:5px 0 0;color:#648175}
+.ra-modal-kicker{font-size:12px;color:#34795f;font-weight:700}
+.ra-shell .ra-modal-close{background:white;color:#496c60;border:1px solid #c9ddd0;border-radius:10px;padding:0;min-width:42px;width:42px;min-height:42px;flex:none;font-size:27px;line-height:1}
+.ra-shell .ra-modal-close:hover:not(:disabled){background:#e7f3ec}
+.ra-modal-body{padding:21px 27px 27px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.ra-modal-body .ra-form{margin:0 0 22px}
+.ra-modal-body label{min-width:0}
+.ra-modal-body input,.ra-modal-body select{font-size:15px;min-height:47px}
+.ra-modal-body form>button{width:auto;min-width:240px}
+.ra-modal-dialog button:focus-visible,.ra-modal-dialog input:focus-visible,.ra-modal-dialog select:focus-visible,.ra-create-button:focus-visible{outline:3px solid #8dbda8;outline-offset:2px}
+@media(max-width:700px){
+ .ra-allocation-toolbar{padding:17px;align-items:stretch;flex-direction:column}
+ .ra-shell .ra-create-button{width:100%;min-height:48px}
+ .ra-modal-backdrop{padding:0;align-items:flex-end}
+ .ra-modal-dialog{width:100%;max-height:calc(100dvh - 8px);border-radius:19px 19px 0 0}
+ .ra-modal-header{padding:18px 17px 15px}
+ .ra-modal-header h2{font-size:21px}
+ .ra-modal-body{padding:18px 17px calc(22px + env(safe-area-inset-bottom))}
+ .ra-modal-body .ra-form{grid-template-columns:1fr;gap:13px}
+ .ra-modal-body .ra-wide{grid-column:1}
+ .ra-modal-body form>button{width:100%;min-height:49px}
+}
+@media print{.ra-allocation-toolbar,.ra-modal-backdrop{display:none!important}}
