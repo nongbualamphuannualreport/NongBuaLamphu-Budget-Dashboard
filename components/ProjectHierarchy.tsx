@@ -1,6 +1,6 @@
 'use client';
 import {useMemo,useState} from 'react';
-import {ChevronDown,ChevronRight,FileSpreadsheet,Layers3,Landmark,Search,Wallet} from 'lucide-react';
+import {ChevronDown,ChevronRight,Layers3,Landmark,Search,Wallet} from 'lucide-react';
 import type {DisbursementReport,DisbursementRow} from '@/lib/disbursement';
 import {moneyTH,percentTH} from '@/lib/disbursement';
 import Link from 'next/link';
@@ -38,17 +38,17 @@ function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean
     <button type="button" className="ph-activity-trigger" onClick={onClick} aria-expanded={open}>
       {open?<ChevronDown size={18}/>:<ChevronRight size={18}/>}
       <div className="ph-activity-title"><span>{nested?'กิจกรรมย่อย':'กิจกรรม'}</span><strong>{cleanName(row.activity??row.name??'ไม่ระบุชื่อกิจกรรม')}</strong><small>หน่วยดำเนินการ: {row.agency||detail?.agencyFullName||'ไม่ระบุ'}</small></div>
-      <div className="ph-activity-quick"><b>{money(row.po)} บาท PO</b><small>เบิกจ่าย {money(row.disbursed)} บาท · · {percentTH(row.disbursed,row.budget)}%</small></div>
+      <div className="ph-activity-quick"><b>ยอดผูกพัน {money(row.po)} บาท</b><small>เบิกจ่าย {money(row.disbursed)} บาท · {percentTH(row.disbursed,row.budget)}%</small></div>
     </button>
     {open&&<div className="ph-activity-detail">
       <Amounts budget={row.budget} po={row.po} paid={row.disbursed} remaining={row.remaining}/>
-      <div className="ph-source"><FileSpreadsheet size={17}/><div><b>เอกสารอ้างอิง</b><p>{detail?`ชีต ${detail.sheet} · ${detail.agencyFullName} · แถว ${detail.agencyRow}`:'รายการที่บันทึกเพิ่มในระบบ / ไม่มีชีตหน่วยงานที่เชื่อมไว้ในไฟล์ตั้งต้น'}{sourceRow(row)!==Number.MAX_SAFE_INTEGER?` · ชีตสรุป แถว ${sourceRow(row)}`:''}</p></div></div>
+      
       {cost&&<section className="ph-costs">
-        <div className="ph-costs-head"><h4>รายการค่าใช้จ่ายตามชีตหน่วยงาน</h4><span>ข้อมูลประกอบ</span></div>
-        {cost.rows.map(([label,budget,agencyRow],index)=><div className="ph-cost-row" key={index}><div>{label}<small>แถว {agencyRow} ของชีต {detail?.sheet}</small></div><b>{typeof budget==='number'?`${money(budget)} บาท`:'ยังไม่ระบุวงเงิน'}</b></div>)}
-        {cost.status==='incomplete'&&<p className="ph-cost-warning">ชีตนี้มีชื่อรายการค่าใช้จ่ายบางรายการที่ยังไม่ระบุวงเงิน จึงไม่ควรตีความว่าแจกแจงงบประมาณครบแล้ว</p>}
+        <div className="ph-costs-head"><h4>รายละเอียดค่าใช้จ่าย</h4></div>
+        {cost.rows.map(([label,budget],index)=><div className="ph-cost-row" key={index}><div>{label}</div><b>{typeof budget==='number'?`${money(budget)} บาท`:'ยังไม่ระบุวงเงิน'}</b></div>)}
+        {cost.status==='incomplete'&&<p className="ph-cost-warning">มีรายการค่าใช้จ่ายบางส่วนที่ยังไม่ระบุวงเงิน</p>}
       </section>}
-      {note&&<div className="ph-note"><b>หมายเหตุจากชีตหน่วยงาน</b> {note}</div>}
+      {note&&<div className="ph-note"><b>หมายเหตุ</b> {note}</div>}
     </div>}
   </article>;
 }
@@ -128,6 +128,6 @@ export function ProjectHierarchy({report,search,mode='all'}:{report:Disbursement
     </section>}
     {mode==='all'&&reserve&&<Link className="ph-reserve ph-reserve-link" href="/reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>กองเงินแยกสำหรับสร้างโครงการใหม่ · ดูยอดที่จัดสรรไปแล้วและเงินคงเหลือ</p></div><b>{money(reserve.budget)} บาท</b><ChevronRight size={19}/></Link>}
     </>}
-    <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงตามบัญชีหน่วยดำเนินการ ณ 10 พฤศจิกายน 2569 โดยไม่นับซ้ำกับยอดงบประมาณรายโครงการ</p>
+    <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงจากข้อมูลของหน่วยดำเนินการ</p>
   </div>;
 }
