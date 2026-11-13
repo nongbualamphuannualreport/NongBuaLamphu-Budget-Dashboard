@@ -76,7 +76,7 @@ export function DisbursementDashboard(){
           </div>
           <div className="ds-hero-total"><span>งบประมาณปี 2570</span><strong>{report?moneyTH(report.totals.budget):'—'}</strong><small>บาท · {totalProjects} โครงการ</small><div className="ds-hero-ring"/></div>
         </section>}
-        <div className="ds-section-title"><span>รายงานประจำปีงบประมาณ พ.ศ. 2570</span><h2>{navItems.find(item=>item.id===view)?.label}</h2><p>{view==='overview'?'ภาพรวมสถานะและผลการเบิกจ่าย':view==='projects'?'เฉพาะ 10 โครงการหลักตามบัญชีงบประมาณ':view==='activities'?'ค้นหาและตรวจสอบกิจกรรมย่อยทุกโครงการ':view==='extras'?'แสดงโครงการเพิ่มภายหลังโดยไม่รวมเป็น 10 โครงการหลัก'''}</p></div>
+        <div className="ds-section-title"><span>รายงานประจำปีงบประมาณ พ.ศ. 2570</span><h2>{navItems.find(item=>item.id===view)?.label}</h2><p>{view==='overview'?'ภาพรวมสถานะและผลการเบิกจ่าย':view==='projects'?'เฉพาะ 10 โครงการหลักตามบัญชีงบประมาณ':view==='activities'?'ค้นหาและตรวจสอบกิจกรรมย่อยทุกโครงการ':'แสดงโครงการเพิ่มภายหลังโดยไม่รวมเป็น 10 โครงการหลัก'}</p></div>
         <div className="ds-toolbar">
           <div className="ds-view-controls"><label>ช่วงข้อมูล <select aria-label="เลือกช่วงรายงาน" value={date?'history':'latest'} onChange={e=>{if(e.target.value==='latest')setDate('');else if(!date&&report)setDate(report.as_of_date);}}><option value="latest">ข้อมูลล่าสุด</option><option value="history">ข้อมูลย้อนหลัง</option></select></label>
             {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
