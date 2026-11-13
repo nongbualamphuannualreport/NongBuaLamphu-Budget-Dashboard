@@ -45,12 +45,12 @@ export function AdminCsvExport({report,enabled}:{report:Report;enabled:boolean})
    document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  return <section className="mon-box mon-csv-export mon-noprint" aria-label="ดาวน์โหลดไฟล์ข้อมูล CSV">
-   <div className="mon-csv-heading"><FileSpreadsheet size={22} aria-hidden="true"/><div><h2>ส่งออกข้อมูล Excel / CSV</h2><p>เลือกประเภทข้อมูลที่ต้องการ · ข้อมูล ณ {report.asOf} · ใช้เปิดใน Excel และระบบวิเคราะห์ข้อมูลได้</p></div></div>
+   <div className="mon-csv-heading"><FileSpreadsheet size={22} aria-hidden="true"/><div><h2>ดาวน์โหลดข้อมูลรายงาน</h2><p>เลือกประเภทรายงานที่ต้องการ · ข้อมูล ณ {report.asOf}</p></div></div>
    <div className="mon-csv-actions">{categories.map(item=>
     <button type="button" key={item.kind} disabled={!enabled} onClick={()=>download(item.kind,item.filename)}>
       <FileSpreadsheet size={17} aria-hidden="true"/>{item.label}
     </button>
    )}</div>
-   {!enabled&&<p className="mon-muted">การดาวน์โหลดถูกปิดชั่วคราวระหว่างโหลดหรือเมื่อข้อมูลยังไม่ครบ เพื่อป้องกันรายงานคลาดเคลื่อน</p>}
+   {!enabled&&<p className="mon-muted">ข้อมูลรายงานยังไม่พร้อมดาวน์โหลด กรุณาลองใหม่อีกครั้ง</p>}
  </section>;
 }
