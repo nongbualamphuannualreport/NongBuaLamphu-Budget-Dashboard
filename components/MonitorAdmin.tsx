@@ -134,7 +134,7 @@ export function MonitorAdmin(){
   <div className="mon-admin-layout">
    <AdminNavigation active={section} onSelect={selectSection}/>
    <div className="mon-admin-content">
-    <div className="mon-current-view mon-noprint"><span>ระบบจัดการงบประมาณ / {section==='overview'?'ภาพรวมงบประมาณ':section==='projects'?'โครงการและกิจกรรม':section==='po'?'PO / ยอดผูกพัน':section==='disbursements'?'บันทึกเบิกจ่าย':section==='history'?'ประวัติเบิกจ่าย':'รายงานและ PDF'}</span>
+    <div className="mon-current-view mon-noprint"><span>ระบบจัดการงบประมาณ / {section==='overview'?'ภาพรวมงบประมาณ':section==='projects'?'โครงการและกิจกรรม':section==='po'?'PO / ยอดผูกพัน':section==='disbursements'?'บันทึกเบิกจ่าย':section==='history'?'ประวัติเบิกจ่าย':'ดาวน์โหลดรายงาน'}</span>
     <p>{section==='overview'?'ติดตามงบประมาณ PO และการเบิกจ่ายภาพรวม':section==='projects'?'ดูรายละเอียดโครงการและปรับปรุงกิจกรรมตามสิทธิ์':section==='po'?'เพิ่ม PO ลด PO และบันทึกจ่ายจาก PO':section==='disbursements'?'บันทึกเบิกจ่ายใหม่และปรับลดเบิกจ่าย':section==='history'?'ตรวจสอบประวัติรายการเบิกจ่ายและ PO' :'ดาวน์โหลดรายงานสำหรับใช้งานและเสนอผู้บริหาร'}</p></div>
     {(section==='overview'||section==='pdf')&&<>
     <section className="mon-box mon-filters" id="monitor-overview"><div><h2>รายงานผลการเบิกจ่าย</h2><p>เลือกช่วงเวลารายงาน โดยระบบแสดงยอดเบิกจ่ายสะสมถึงวันที่อ้างอิง</p></div><div className="mon-controls"><div className="mon-tabs">{(['daily','monthly','yearly'] as const).map(m=><button key={m} aria-pressed={mode===m} className={mode===m?'active':''} onClick={()=>setMode(m)}>{m==='daily'?'รายวัน':m==='monthly'?'รายเดือน':'รายปี'}</button>)}</div><label>วันที่อ้างอิง <input type="date" value={date} min="2026-11-10" max="2027-09-30" onChange={e=>setDate(e.target.value)}/></label></div></section>
@@ -172,7 +172,7 @@ export function MonitorAdmin(){
         return <tr key={'h-'+node.header.sourceRow} className="mon-major-row"><td colSpan={7}><b>กิจกรรมหลัก: {node.header.title}</b><small>{child.length} กิจกรรมย่อย · งบรวม {fmt(child.reduce((v,a)=>v+a.budget,0))} บาท</small></td></tr>;
       }
       const a=node.activity;
-      const agencyRef=hierarchyMetadata.sourceByRow[String(a.source_row??'') as keyof typeof hierarchyMetadata.sourceByRow];
+      
       return <tr key={a.id} className={childRows.has(a.source_row??-1)?'mon-subactivity':''}><td><b>{a.name}</b><small>{a.agency}</small></td><td>{fmt(a.budget)}</td><td className="mon-po-value">{fmt(a.po)}</td><td>{fmt(a.cumulative)}</td><td>{fmt(a.period)}</td><td>{fmt(a.remaining)}</td><td className="mon-noprint"><div className="mon-row-actions">{section==='po'&&a.project_code!=='RESERVE'&&<button type="button" onClick={()=>openPo(a.id,'add')}>+ PO</button>}{section==='po'&&a.project_code!=='RESERVE'&&a.po>0&&<button type="button" onClick={()=>openPo(a.id,'release')}>ลด PO</button>}{section==='po'&&a.project_code!=='RESERVE'&&a.po>0&&<button type="button" className="mon-po-pay" onClick={()=>openPo(a.id,'pay')}>จ่ายจาก PO</button>}{section==='disbursements'&&a.project_code!=='RESERVE'&&<button onClick={()=>openNew(a.id)}>+ เบิกจ่าย</button>}{section==='disbursements'&&a.project_code!=='RESERVE'&&<button onClick={()=>openNew(a.id,'reduction')}>ลดยอดเบิกจ่าย</button>}{section==='projects'&&a.project_code!=='RESERVE'&&a.project_code!=='P11'&&!/^T[0-9]{2,3}$/.test(a.project_code)&&<button onClick={()=>editMaster(a)}>แก้ไขกิจกรรม</button>}</div></td></tr>;
     })}</tbody></table></div></>}</div>})}
   </section>
@@ -229,7 +229,7 @@ export function MonitorAdmin(){
   </AdminModal>}
   {(section==='po'||section==='history')&&<section className="mon-box mon-noprint mon-entries-history">
    <h2>ประวัติ PO / ยอดผูกพัน</h2>
-   <p>เพิ่ม PO ลด PO หรือจ่ายเงินจาก PO โดยเก็บวันที่และเอกสารอ้างอิงทุกครั้ง</p>
+   <p>ตรวจสอบรายการยอดผูกพันและเอกสารอ้างอิง</p>
    <div className="mon-scroll"><table><thead><tr><th>วันที่</th><th>กิจกรรมย่อย</th><th>รายการ</th><th>ยอดเคลื่อนไหว PO</th><th>เลขที่สัญญา / เอกสาร</th></tr></thead>
    <tbody>{poEntries.slice(0,150).map(item=><tr key={item.id}>
      <td>{thai(item.po_on)}</td>
