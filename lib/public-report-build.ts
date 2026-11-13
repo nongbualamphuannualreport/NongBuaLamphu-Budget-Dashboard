@@ -10,7 +10,7 @@ export function buildCurrentReport(activities:MonitorActivity[],entries:Pick<Mon
  const totals=new Map<string,number>();
  const seen=new Set<string>();
  for(const row of entries){
-  if(!dateOk(row.paid_on)||!finite(Number(row.amount)))throw Error('พบรายการเบิกจ่ายที่ไม่ถูกต้อง');
+  if(!dateOk(row.paid_on)||!Number.isFinite(Number(row.amount))||Number(row.amount)===0)throw Error('พบรายการเบิกจ่ายที่ไม่ถูกต้อง');
   if(row.paid_on>asOf)continue;
   totals.set(row.activity_id,cents((totals.get(row.activity_id)??0)+Number(row.amount)));
  }
@@ -23,7 +23,7 @@ export function buildCurrentReport(activities:MonitorActivity[],entries:Pick<Mon
   const budget=Number(a.budget),baseline=Number(a.baseline_disbursed);
   if(!finite(budget)||!finite(baseline)||baseline>budget+.005)throw Error('วงเงินหรือยอดเบิกจ่ายตั้งต้นไม่ถูกต้อง: '+a.id);
   const paid=cents((a.baseline_date<=asOf?baseline:0)+(totals.get(a.id)??0));
-  if(paid>budget+.005)throw Error('ยอดเบิกจ่ายเกินวงเงินกิจกรรม: '+a.id);
+  if(paid>budget+.005||paid<-.005)throw Error('ยอดเบิกจ่ายเกินวงเงินกิจกรรม: '+a.id);
   const remaining=cents(budget-paid);
   if(a.project_code!=='RESERVE'){
    details.push({code:a.id,project_code:a.project_code,activity:a.name,agency:a.agency,budget,po:0,disbursed:paid,remaining,source_row:a.source_row??undefined} as DisbursementRow);

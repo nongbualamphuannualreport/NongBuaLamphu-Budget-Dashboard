@@ -17,7 +17,7 @@ create table if not exists public.monitor_entries (
   id uuid primary key default gen_random_uuid(),
   activity_id text not null references public.monitor_activities(id),
   paid_on date not null,
-  amount numeric(16,2) not null check (amount > 0),
+  amount numeric(16,2) not null check (amount <> 0),
   reference text not null default '',
   note text not null default '',
   created_by uuid references auth.users(id),

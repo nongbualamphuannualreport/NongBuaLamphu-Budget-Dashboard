@@ -26,3 +26,21 @@ export const validDate=(v:unknown):v is string=> {
   const d=new Date(v+'T00:00:00Z');
   return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===v;
 };
+
+/** Verify the running net balance by date, not just its final value. */
+export function validateNetLedger(budget:number,opening:number,openingDate:string,rows:Pick<MonitorEntry,'paid_on'|'amount'>[]){
+ if(!Number.isFinite(budget)||!Number.isFinite(opening)||opening<0||opening>budget+.005)throw Error('ยอดตั้งต้นไม่ถูกต้อง');
+ const byDate=new Map<string,number>();
+ for(const r of rows){
+  const amount=Number(r.amount);
+  if(!validDate(r.paid_on)||r.paid_on<openingDate||!Number.isFinite(amount)||amount===0||Math.abs(Math.round(amount*100)-amount*100)>.00001)throw Error('วันที่หรือจำนวนเงินไม่ถูกต้อง');
+  byDate.set(r.paid_on,Math.round(((byDate.get(r.paid_on)??0)+amount)*100)/100);
+ }
+ let balance=opening;
+ for(const [date,change] of [...byDate].sort(([a],[b])=>a.localeCompare(b))){
+  balance=Math.round((balance+change)*100)/100;
+  if(balance<-.005)throw Error('ลดยอดเกินยอดเบิกจ่ายสะสม ณ วันที่ '+date);
+  if(balance>budget+.005)throw Error('ยอดเบิกจ่ายสะสมเกินวงเงินกิจกรรม ณ วันที่ '+date);
+ }
+ return balance;
+}

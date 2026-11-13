@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isConfigured,serverDb,verifyAdmin} from '@/lib/supabase';
-import {validDate,type MonitorEntry,type MonitorActivity} from '@/lib/monitor';
+import {validDate,validateNetLedger,type MonitorEntry,type MonitorActivity} from '@/lib/monitor';
 import baseline from '@/data/monitor-baseline.json';
 export const dynamic='force-dynamic';
 async function authorize(req:NextRequest){return isConfigured()?verifyAdmin(req.headers.get('authorization')):null;}
@@ -57,25 +57,52 @@ export async function POST(req:NextRequest){
   if(id){const q=await db.from('monitor_entries').select('*').eq('id',id).maybeSingle();if(q.error)return bad(q.error.message,500);prev=q.data;}
   if(p.action==='delete-entry'){
     if(!prev)return bad('ไม่พบรายการที่จะลบ',404);
+    const activity=await db.from('monitor_activities').select('budget,baseline_disbursed,baseline_date').eq('id',prev.activity_id).maybeSingle();
+    const all=await db.from('monitor_entries').select('id,paid_on,amount').eq('activity_id',prev.activity_id).limit(20001);
+    if(activity.error||!activity.data||all.error)return bad('ไม่สามารถตรวจสอบยอดหลังลบได้',500);
+    if((all.data??[]).length>20000)return bad('มีรายการมากเกินขอบเขตการตรวจสอบ',422);
+    try{validateNetLedger(Number(activity.data.budget),Number(activity.data.baseline_disbursed),String(activity.data.baseline_date),
+      (all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})));
+    }catch(err){return bad(err instanceof Error?err.message:'ยอดย้อนหลังจะผิดหลังลบ',422);}
     const d=await db.from('monitor_entries').delete().eq('id',id);if(d.error)return bad(d.error.message,500);
     await db.from('monitor_entry_audit').insert({entry_id:id,action:'delete',before_value:prev,by_user:user.id});
     return NextResponse.json({ok:true});
   }
   const activity_id=typeof p.activity_id==='string'?p.activity_id:'';
-  const amount=Number(p.amount),paid_on=p.paid_on;
-  if(!activity_id||!validDate(paid_on)||!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100)return bad('กิจกรรม วันที่ หรือจำนวนเงินไม่ถูกต้อง (ใช้เลขบวกและทศนิยมไม่เกิน 2 หลัก)');
+  const inputAmount=Number(p.amount),paid_on=p.paid_on;
+  const kind=p.kind==='reduction'?'reduction':p.kind==='disbursement'||p.kind===undefined?'disbursement':null;
+  if(!kind||!activity_id||!validDate(paid_on)||!Number.isFinite(inputAmount)||inputAmount<=0||Math.abs(Math.round(inputAmount*100)-inputAmount*100)>.00001)
+    return bad('กิจกรรม วันที่ หรือจำนวนเงินไม่ถูกต้อง');
+  if(kind==='reduction'&&!String(p.note??'').trim()&&!String(p.reference??'').trim())
+    return bad('กรุณาระบุเหตุผลหรือเอกสารอ้างอิงในการลดยอดเบิกจ่าย');
+  const amount=kind==='reduction'?-inputAmount:inputAmount;
   if(paid_on<'2026-11-10'||paid_on>'2027-09-30')return bad('วันที่ต้องอยู่ระหว่าง 10 พ.ย. 2569 ถึง 30 ก.ย. 2570');
   const a=await db.from('monitor_activities').select('*').eq('id',activity_id).maybeSingle();
   if(a.error||!a.data)return bad('ไม่พบกิจกรรมย่อย',404);
-  const all=await db.from('monitor_entries').select('id,amount').eq('activity_id',activity_id);
+  const all=await db.from('monitor_entries').select('id,paid_on,amount').eq('activity_id',activity_id).limit(20001);
   if(all.error)return bad(all.error.message,500);
-  const total=Number(a.data.baseline_disbursed)+(all.data??[]).filter(e=>e.id!==id).reduce((s,e)=>s+Number(e.amount),0)+amount;
-  if(total>Number(a.data.budget)+0.005)return bad('ยอดสะสมเบิกจ่ายเกินวงเงินกิจกรรม',422);
+  if((all.data??[]).length>20000)return bad('รายการมากเกินขอบเขตการตรวจสอบ',422);
+  try{
+    validateNetLedger(Number(a.data.budget),Number(a.data.baseline_disbursed),String(a.data.baseline_date),
+      [...(all.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})),{paid_on,amount}]);
+  }catch(err){return bad(err instanceof Error?err.message:'ยอดสะสมไม่ถูกต้อง',422);}
+  if(prev&&prev.activity_id!==activity_id){
+    const oldActivity=await db.from('monitor_activities').select('budget,baseline_disbursed,baseline_date').eq('id',prev.activity_id).maybeSingle();
+    const oldRows=await db.from('monitor_entries').select('id,paid_on,amount').eq('activity_id',prev.activity_id).limit(20001);
+    if(oldActivity.error||!oldActivity.data||oldRows.error)return bad('ตรวจสอบกิจกรรมเดิมไม่ได้',500);
+    if((oldRows.data??[]).length>20000)return bad('รายการเก่าเกินขอบเขตการตรวจสอบ',422);
+    try{validateNetLedger(Number(oldActivity.data.budget),Number(oldActivity.data.baseline_disbursed),String(oldActivity.data.baseline_date),
+      (oldRows.data??[]).filter(e=>e.id!==id).map(e=>({paid_on:String(e.paid_on),amount:Number(e.amount)})));
+    }catch(err){return bad(err instanceof Error?err.message:'ยอดกิจกรรมเดิมจะผิด',422);}
+  }
   const record={activity_id,paid_on,amount,reference:String(p.reference??'').slice(0,300),note:String(p.note??'').slice(0,1000),updated_at:new Date().toISOString()};
   let result;
   if(prev){result=await db.from('monitor_entries').update(record).eq('id',id).select('*').single();}
   else{result=await db.from('monitor_entries').insert({...record,created_by:user.id}).select('*').single();}
-  if(result.error)return bad(result.error.message,500);
+  if(result.error){
+    if(kind==='reduction'&&result.error.code==='23514')return bad('ฐานข้อมูลยังไม่เปิดใช้งานการลดยอดเบิกจ่าย กรุณารัน SQL migration ก่อน',422);
+    return bad(result.error.message,500);
+  }
   await db.from('monitor_entry_audit').insert({entry_id:result.data.id,action:prev?'update':'create',before_value:prev,after_value:result.data,by_user:user.id});
   return NextResponse.json({ok:true,entry:result.data});
 }
