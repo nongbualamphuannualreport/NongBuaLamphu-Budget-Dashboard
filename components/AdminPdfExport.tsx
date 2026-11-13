@@ -149,7 +149,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
     {generating==='full'?'กำลังสร้างไฟล์...':'ดาวน์โหลด PDF รายละเอียดทุกกิจกรรม'}
    </button>
   </div>
-  <p className="apdf-hint">รายงานเป็นกระดาษ A4 แนวตั้ง พร้อมตัวอักษรภาษาไทยจากหน้าเว็บ ไม่ต้องใช้ตัวอ่าน PDF ของ Messenger ในการสร้างไฟล์</p>
+  <p className="apdf-hint">รายงานขนาด A4 แนวตั้ง พร้อมสำหรับพิมพ์หรือส่งต่อ</p>
   {!enabled&&<p className="mon-error">กรุณารอข้อมูลครบถ้วนก่อนสร้างรายงาน</p>}
   {status&&<p role="status" className="apdf-status">{status}</p>}
   <div className="apdf-capture" ref={sheets} aria-hidden="true">
