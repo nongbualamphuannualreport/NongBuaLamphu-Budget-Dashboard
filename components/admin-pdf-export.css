@@ -174,3 +174,9 @@
 .apdf-reduction-line .apdf-detail-figures b{
   color:#a65c35;font-size:11px;font-weight:800;
 }
+ 
+.apdf-reserve-note{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center;
+ padding:9px 12px;background:#f4f6ef;border:1px solid #d5e2d3;border-radius:8px;margin:12px 0;
+ color:#335845;font-size:11px;line-height:1.45}
+.apdf-reserve-note strong{font-size:11px}.apdf-reserve-note span{text-align:right}
+.apdf-reserve-note small{grid-column:1/-1;font-size:10px;color:#6e8678}

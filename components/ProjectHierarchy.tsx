@@ -3,6 +3,8 @@ import {useMemo,useState} from 'react';
 import {ChevronDown,ChevronRight,FileSpreadsheet,Layers3,Landmark,Search,Wallet} from 'lucide-react';
 import type {DisbursementReport,DisbursementRow} from '@/lib/disbursement';
 import {moneyTH,percentTH} from '@/lib/disbursement';
+import Link from 'next/link';
+import {coreProject,transferredProject} from '@/lib/reallocation';
 import metaFile from '@/data/hierarchy-metadata.json';
 
 type Metadata={
@@ -54,7 +56,8 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
   const [opened,setOpened]=useState('');
   const [openedGroup,setOpenedGroup]=useState('');
   const [openedActivity,setOpenedActivity]=useState('');
-  const projects=report.projects.filter(p=>p.code!=='RESERVE');
+  const projects=report.projects.filter(p=>coreProject(String(p.code)));
+  const extraProjects=report.projects.filter(p=>p.code!=='RESERVE'&&!coreProject(String(p.code)));
   const reserve=report.projects.find(p=>p.code==='RESERVE');
   const q=search.toLocaleLowerCase('th-TH').trim();
   const grouped=useMemo(()=>projects.map(project=>{
@@ -114,7 +117,15 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
         </div>}
       </section>;
     })}
-    {reserve&&<div className="ph-reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>แสดงแยกจากโครงการตามบัญชีงบประมาณ โดยรวมในยอดงบประมาณทั้งสิ้น</p></div><b>{money(reserve.budget)} บาท</b></div>}
+    {extraProjects.length>0&&<section className="ph-extras">
+      <h3>โครงการเพิ่มเติมนอกบัญชี 10 โครงการหลัก</h3>
+      <p>แสดงตามแหล่งงบประมาณโดยไม่นำมารวมในจำนวนโครงการหลัก</p>
+      {extraProjects.map(p=><div className="ph-extra-row" key={p.code}>
+        <div><strong>{p.code} · {p.name}</strong><small>{transferredProject(String(p.code))?'จัดสรรจากเงินโอนเปลี่ยนแปลง':'โครงการเพิ่มเติมที่มีอยู่เดิม'}</small></div>
+        <div><b>{money(p.budget)} บาท</b><small>PO {money(p.po)} · เบิกจ่าย {money(p.disbursed)}</small></div>
+      </div>)}
+    </section>}
+    {reserve&&<Link className="ph-reserve ph-reserve-link" href="/reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>กองเงินแยกสำหรับสร้างโครงการใหม่ · ดูยอดที่จัดสรรไปแล้วและเงินคงเหลือ</p></div><b>{money(reserve.budget)} บาท</b><ChevronRight size={19}/></Link>}
     <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงตามบัญชีหน่วยดำเนินการ ณ 10 พฤศจิกายน 2569 โดยไม่นับซ้ำกับยอดงบประมาณรายโครงการ</p>
   </div>;
 }

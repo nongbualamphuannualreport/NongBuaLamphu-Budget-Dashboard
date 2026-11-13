@@ -167,3 +167,10 @@
  border:1px solid #d6dfeb;border-left:4px solid #42658a;border-radius:8px;
  background:#f1f5f9;padding:11px 14px;margin:17px 0 14px;color:#294a66;font-size:11px}
 .apdf-po-summary b{font-size:14px;white-space:nowrap}
+ 
+.mon-reserve-link{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:12px 0 20px;padding:17px;
+ background:#f8f0e7;border:1px solid #e8cbab;border-radius:13px}
+.mon-reserve-link>div{min-width:0}.mon-reserve-link strong{font-size:16px;color:#78502f}
+.mon-reserve-link p{margin:5px 0;font-size:14px;color:#6d523f}.mon-reserve-link small{font-size:12px;color:#8b776a}
+.mon-reserve-link a{flex-shrink:0;padding:10px 15px;border-radius:10px;background:#8f6342;color:white;text-decoration:none;font-weight:700;font-size:13px}
+@media(max-width:680px){.mon-reserve-link{flex-direction:column;align-items:stretch}.mon-reserve-link a{text-align:center}}

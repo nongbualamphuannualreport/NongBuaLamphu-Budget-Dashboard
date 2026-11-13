@@ -1,0 +1,35 @@
+.rv-page{max-width:1180px;margin:0 auto;padding:28px 22px 90px;color:#20394a;font-family:inherit}
+.rv-page *{box-sizing:border-box}.rv-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;margin-bottom:22px;color:#708488}
+.rv-page a{color:#196b54;text-decoration:none;font-weight:650}
+.rv-hero{border-radius:18px;background:#203853;color:#fff;padding:32px 36px;margin-bottom:22px}
+.rv-hero>span{font-size:12px;color:#c7dbd2;letter-spacing:.8px}
+.rv-hero h1{color:white;font-size:clamp(23px,3vw,32px);line-height:1.35;margin:11px 0}
+.rv-hero p{color:#d4e1e7;font-size:14px;line-height:1.7;margin:0;max-width:790px}
+.rv-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:24px}
+.rv-metrics>div{display:flex;flex-direction:column;gap:6px;padding:21px 23px;border:1px solid #dce7df;border-radius:15px;background:#fff}
+.rv-metrics small{color:#697f86;font-size:13px}.rv-metrics strong{color:#274b5c;font-size:clamp(25px,3vw,35px);line-height:1.25;font-variant-numeric:tabular-nums}
+.rv-metrics span{color:#8a9b9d;font-size:12px}.rv-metrics>.rv-remaining{background:#edf6f0;border-color:#bddcc9}
+.rv-metrics>.rv-remaining strong{color:#176d50}
+.rv-section{border:1px solid #e0e8e3;border-radius:16px;background:#fff;padding:24px;margin-bottom:20px}
+.rv-section h2{font-size:20px;margin:0 0 8px}.rv-section>p{font-size:13px;line-height:1.75;color:#728689;margin:0 0 18px}
+.rv-projects{display:grid;gap:12px}.rv-projects article{border:1px solid #e1e9e4;border-radius:13px;padding:18px}
+.rv-proj-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}
+.rv-proj-head span{color:#bb845e;font-size:12px;font-weight:700}
+.rv-proj-head h3{font-size:17px;line-height:1.5;margin:4px 0 0}.rv-proj-head>strong{color:#166c50;font-size:18px}
+.rv-finances{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;padding:11px 13px;border-radius:8px;background:#f3f7f5;font-size:13px}
+.rv-finances b{color:#275b51}.rv-projects ul{list-style:none;margin:12px 0 0;padding:0}
+.rv-projects li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #eef0ec;font-size:13px}
+.rv-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;color:#7f9192;font-size:12px}
+.rv-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.rv-form label,.rv-reverse label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#4d6870;font-weight:650}
+.rv-form input,.rv-form select,.rv-reverse input{width:100%;min-height:44px;border:1px solid #cdded3;border-radius:9px;padding:10px 12px;color:#223e4d;background:#fff;font:inherit}
+.rv-form .rv-wide{grid-column:1/-1}.rv-form button,.rv-actions button,.rv-transfer-side button{background:#186c51;color:#fff;border:0;border-radius:9px;padding:10px 17px;font:inherit;cursor:pointer;font-weight:700}
+.rv-form button{min-height:46px;grid-column:1/-1}.rv-form button:disabled,.rv-actions button:disabled{opacity:.5;cursor:not-allowed}
+.rv-transfers{display:grid;gap:10px}.rv-transfer{display:flex;justify-content:space-between;gap:18px;border:1px solid #e3ebe5;padding:14px;border-radius:11px}
+.rv-transfer>div:first-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+.rv-transfer small{font-size:11px;color:#819095}.rv-transfer strong{font-size:15px;line-height:1.45}
+.rv-transfer span{font-size:13px;color:#5b757b}.rv-transfer-side{display:flex;flex-direction:column;gap:11px;align-items:flex-end;flex-shrink:0}
+.rv-transfer-side b{color:#226e55}.rv-transfer-side button{font-size:12px;padding:7px 11px;background:#fff3ee;color:#aa5637;border:1px solid #efd3c3}
+.rv-error,.rv-success{padding:13px 16px;border-radius:10px;margin:13px 0;background:#fff2ec;color:#a84326;font-size:14px}
+.rv-success{background:#e9f7ed;color:#17683e}.rv-reverse{border-color:#e9cdbd}.rv-reverse label{max-width:600px}.rv-actions{display:flex;gap:10px;margin-top:14px}
+@media(max-width:700px){.rv-page{padding:14px 12px 60px}.rv-hero{padding:23px 19px;border-radius:13px}.rv-metrics{grid-template-columns:1fr;gap:9px}.rv-metrics>div{padding:15px 19px}.rv-metrics strong{font-size:26px}.rv-section{padding:16px;border-radius:12px}.rv-form{grid-template-columns:1fr}.rv-projects li,.rv-transfer{flex-direction:column}.rv-transfer-side{align-items:flex-start}.rv-finances{flex-direction:column;gap:8px}}

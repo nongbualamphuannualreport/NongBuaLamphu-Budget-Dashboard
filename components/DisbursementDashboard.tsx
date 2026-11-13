@@ -42,8 +42,9 @@ export function DisbursementDashboard(){
   const filtered=useMemo(()=> (view==='projects'?report?.projects??[]:report?.activities??[]).filter(r=>
     [r.name,r.activity,r.agency,r.code,r.project_code].some(t=>String(t??'').toLowerCase().includes(search.toLowerCase()))
   ),[report,view,search]);
-  const totalProjects=report?.projects.filter(p=>p.code!=='RESERVE').length??0;
-  const active=report?.projects.filter(p=>p.code!=='RESERVE'&&p.disbursed>0).length??0;
+  const totalProjects=report?.projects.filter(p=>/^P(0[1-9]|10)$/.test(String(p.code))).length??0;
+  const extraProjects=report?.projects.filter(p=>p.code!=='RESERVE'&&!/^P(0[1-9]|10)$/.test(String(p.code))).length??0;
+  const active=report?.projects.filter(p=>/^P(0[1-9]|10)$/.test(String(p.code))&&p.disbursed>0).length??0;
 
   function csv(){
     if(!report)return;
@@ -93,11 +94,11 @@ export function DisbursementDashboard(){
               <div className="ds-progress-caption"><span>PO คงค้าง <b>{moneyTH(report.totals.po)} บาท</b></span><span>เบิกจ่ายแล้ว <b>{moneyTH(report.totals.disbursed)} บาท</b></span><span>คงเหลือ <b>{moneyTH(report.totals.remaining)} บาท</b></span></div>
             </section>
             <section className="ds-panel ds-overview"><div className="ds-panel-head"><div><span className="ds-overline">สถานะโครงการ</span><h2>ภาพรวมรายโครงการ</h2></div></div>
-              <div className="ds-overview-numbers"><div><strong>{totalProjects}</strong><span>โครงการทั้งหมด</span></div><div><strong>{active}</strong><span>เริ่มเบิกจ่ายแล้ว</span></div><div><strong>{totalProjects-active}</strong><span>ยังไม่เบิกจ่าย</span></div></div>
-              <p>กดเลือกโครงการเพื่อดูโครงสร้างกิจกรรมหลัก กิจกรรมย่อย และรายละเอียดหน่วยดำเนินการ</p>
+              <div className="ds-overview-numbers"><div><strong>{totalProjects}</strong><span>โครงการหลัก</span></div><div><strong>{active}</strong><span>เริ่มเบิกจ่ายแล้ว</span></div><div><strong>{totalProjects-active}</strong><span>ยังไม่เบิกจ่าย (โครงการหลัก)</span></div></div>
+              <p>โครงการเพิ่มเติม {extraProjects} โครงการแสดงแยกจากโครงการหลัก · กดดูรายละเอียดโครงการหรือเงินโอนเปลี่ยนแปลงได้</p>
             </section>
           </div>
-          <section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">รายละเอียดผลการเบิกจ่าย</span><h2>ผลการเบิกจ่ายจำแนกตามโครงการและกิจกรรมย่อย</h2><p>เลือกโครงการเพื่อดูรายละเอียดกิจกรรมและหน่วยดำเนินการ</p></div><div className="ds-controls"><div className="ds-segment"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.filter(p=>p.code!=='RESERVE').length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button></div><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></label></div></div>
+          <section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">รายละเอียดผลการเบิกจ่าย</span><h2>ผลการเบิกจ่ายจำแนกตามโครงการและกิจกรรมย่อย</h2><p>10 โครงการหลักตามแผนเดิม · โครงการเพิ่มเติมแสดงแยก · <Link href="/reserve">ติดตามเงินโอนเปลี่ยนแปลง</Link></p></div><div className="ds-controls"><div className="ds-segment"><button className={view==='projects'?'active':''} onClick={()=>setView('projects')}>รายโครงการ ({report.projects.filter(p=>/^P(0[1-9]|10)$/.test(String(p.code))).length})</button><button className={view==='activities'?'active':''} onClick={()=>setView('activities')}>รายกิจกรรม ({report.activities.length})</button></div><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></label></div></div>
             {view==='projects'?<ProjectHierarchy report={report} search={search}/>:<div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>PO (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-po">{moneyTH(p.po)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>}
             <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
           </section>

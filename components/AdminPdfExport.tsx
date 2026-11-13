@@ -4,6 +4,8 @@ import {useMemo,useRef,useState} from 'react';
 import {flushSync} from 'react-dom';
 import type {MonitorActivity,MonitorPeriod,MonitorEntry} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
+import type {ReallocationTransfer} from '@/lib/reallocation';
+import {coreProject,transferredProject} from '@/lib/reallocation';
 import './admin-pdf-export.css';
 import {paginatePdfProjectDetails,paginateMeasuredPdfDetails,type PdfDetailItem} from '@/lib/pdf-project-pages';
 
@@ -13,7 +15,7 @@ type Report={
  total:{budget:number;po:number;disbursed:number;period:number;remaining:number}
 };
 type Project={code:string;name:string;budget:number;paid:number;remaining:number};
-type Props={report:Report;mode:MonitorPeriod;enabled:boolean;entries:MonitorEntry[]};
+type Props={report:Report;mode:MonitorPeriod;enabled:boolean;entries:MonitorEntry[];transfers:ReallocationTransfer[]};
 
 const thaiDate=(value:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{
  day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'
@@ -33,7 +35,7 @@ function PageFrame({children,page,total,created,asOf}:{children:React.ReactNode;
   </footer>
  </section>;
 }
-export function AdminPdfExport({report,mode,enabled,entries}:Props){
+export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
  const sheets=useRef<HTMLDivElement>(null);
  const [generating,setGenerating]=useState<'summary'|'full'|null>(null);
  const [status,setStatus]=useState('');
@@ -47,7 +49,10 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
   }
   return [...map.values()];
  },[report.rows]);
- const reportProjects=projects.filter(p=>p.code!=='RESERVE');
+ const reportProjects=projects.filter(p=>coreProject(p.code));
+ const addedProjects=projects.filter(p=>p.code!=='RESERVE'&&!coreProject(p.code));
+ const allocated=transfers.filter(t=>t.allocated_on<=report.asOf).reduce((n,t)=>n+Number(t.amount),0);
+ const reserveRemaining=projects.find(p=>p.code==='RESERVE')?.budget??0;
  const activities=report.rows.filter(r=>r.project_code!=='RESERVE');
  const started=reportProjects.filter(p=>p.paid>0);
  const reductions=useMemo(()=>{
@@ -175,6 +180,11 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
       <strong>PO คงค้าง (ยอดผูกพัน ยังไม่เบิกจ่าย)</strong>
       <b>{fmt(report.total.po)} บาท</b>
     </div>}
+    <div className="apdf-reserve-note">
+      <strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong>
+      <span>จัดสรรแล้ว {fmt(allocated)} บาท · ยังไม่จัดสรร {fmt(reserveRemaining)} บาท</span>
+      {addedProjects.length>0&&<small>โครงการเพิ่มเติม {addedProjects.length} โครงการ (ไม่รวมใน 10 โครงการหลัก)</small>}
+    </div>
     <div className="apdf-section-heading"><h2>ความก้าวหน้าการเบิกจ่าย</h2><strong>{pct.toFixed(2)}%</strong></div>
     <div className="apdf-progress"><i style={{width:pct+'%'}}/></div>
     <div className="apdf-overview">

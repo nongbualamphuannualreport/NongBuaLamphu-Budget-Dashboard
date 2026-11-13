@@ -46,6 +46,7 @@ export async function POST(req:NextRequest){
       const agency=requireText(p.agency,180);
       const budget=money(p.budget);
       if(!/^P\d{2,3}$/.test(project_code)||!name||budget===null)return bad('กรุณาระบุรหัสโครงการ ชื่อกิจกรรม และงบประมาณที่ถูกต้อง');
+      if(project_code==='P11')return bad('โครงการ P11 ใช้เงินโอนเปลี่ยนแปลง กรุณาเพิ่มกิจกรรมที่หน้า /admin/reserve เพื่อหักยอดกองเงินก่อน',422);
       const {data:projectRows,error:projectError}=await db.from('monitor_activities').select('project_name').eq('project_code',project_code).limit(1);
       if(projectError)return bad(projectError.message,500);
       const actualProjectName=projectRows?.[0]?.project_name||project_name;
@@ -66,7 +67,8 @@ export async function POST(req:NextRequest){
       const {data:original,error:readError}=await db.from('monitor_activities').select('*').eq('id',id).maybeSingle();
       if(readError)return bad(readError.message,500);
       if(!original)return bad('ไม่พบกิจกรรมนี้',404);
-      if(original.project_code==='RESERVE')return bad('เงินคงเหลือจากการโอนเปลี่ยนแปลงเป็นหมวดคงที่ ไม่อนุญาตให้แก้ผ่านหน้ากิจกรรม',422);
+      if(original.project_code==='RESERVE'||original.project_code==='P11'||/^T[0-9]{2,3}$/.test(original.project_code))
+        return bad('โครงการจากเงินโอนเปลี่ยนแปลงต้องจัดการผ่านหน้ากองเงินเท่านั้น เพื่อรักษาหลักฐานการโอน',422);
       const name=requireText(p.name,500),agency=requireText(p.agency,180),budget=money(p.budget);
       if(!name||budget===null)return bad('กรุณากรอกชื่อกิจกรรมและวงเงินงบประมาณที่ถูกต้อง');
       const paid=Number(original.baseline_disbursed)+await payments(db,id);
@@ -91,7 +93,8 @@ export async function POST(req:NextRequest){
       const {data:original,error:readError}=await db.from('monitor_activities').select('*').eq('id',id).maybeSingle();
       if(readError)return bad(readError.message,500);
       if(!original)return bad('ไม่พบกิจกรรมนี้',404);
-      if(original.project_code==='RESERVE')return bad('ไม่อนุญาตให้ลบหมวดเงินคงเหลือจากการโอนเปลี่ยนแปลง',422);
+      if(original.project_code==='RESERVE'||original.project_code==='P11'||/^T[0-9]{2,3}$/.test(original.project_code))
+        return bad('ไม่อนุญาตให้ลบเงินคงเหลือหรือโครงการที่ได้รับโอนเปลี่ยนแปลงจากหน้านี้',422);
       const [{count,error:countError},{count:poCount,error:poError}]=await Promise.all([
         db.from('monitor_entries').select('id',{count:'exact',head:true}).eq('activity_id',id),
         db.from('monitor_po_entries').select('id',{count:'exact',head:true}).eq('activity_id',id)
@@ -106,6 +109,7 @@ export async function POST(req:NextRequest){
     if(action==='rename-project'){
       const code=requireText(p.project_code,20).toUpperCase(),name=requireText(p.project_name,350);
       if(!/^P\d{2,3}$/.test(code)||!name)return bad('กรุณาระบุรหัสโครงการและชื่อโครงการใหม่ให้ครบ');
+      if(code==='P11')return bad('โครงการที่ใช้เงินโอนเปลี่ยนแปลงให้จัดการจากหน้ากองเงิน',422);
       const {data:before,error:readError}=await db.from('monitor_activities').select('id,project_code,project_name').eq('project_code',code);
       if(readError)return bad(readError.message,500);
       if(!before?.length)return bad('ไม่พบโครงการ',404);
