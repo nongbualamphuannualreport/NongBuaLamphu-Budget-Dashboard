@@ -16,7 +16,7 @@ export async function POST(req:NextRequest){
  const db=serverDb();
  if(kind==='cancel'){
   const projectCode=String(input.project_code??'').trim();
-  if(!/^T[0-9]{2,3}$/.test(projectCode)||reason.length<8)return failure('กรุณาระบุโครงการและเหตุผลการยกเลิกอย่างน้อย 8 ตัวอักษร');
+  if((!/^T[0-9]{2,3}$/.test(projectCode)&&projectCode!=='P11')||reason.length<8)return failure('กรุณาระบุโครงการและเหตุผลการยกเลิกอย่างน้อย 8 ตัวอักษร');
   const {data,error}=await db.rpc('monitor_cancel_reserve_project',{
     p_project_code:projectCode,p_cancelled_on:date,p_reason:reason,p_actor:user.id
   });
@@ -34,7 +34,7 @@ export async function POST(req:NextRequest){
  if(!activity||activity.length>500||!reference||reference.length>300||name.length>350||agency.length>180||note.length>1000)
    return failure('กรุณาระบุชื่อกิจกรรมและเอกสารอนุมัติให้ครบถ้วน');
  if(!target&&!name)return failure('กรุณาระบุชื่อโครงการใหม่');
- if(target&&!/^T[0-9]{2,3}$/.test(target))return failure('เลือกได้เฉพาะโครงการที่สร้างจากเงินโอน');
+ if(target&&!/^T[0-9]{2,3}$/.test(target)&&target!=='P11')return failure('เลือกได้เฉพาะโครงการที่สร้างจากเงินโอน');
  const {data,error}=await db.rpc('monitor_allocate_reserve',{
   p_project_code:target,p_project_name:name,p_activity_name:activity,p_agency:agency,
   p_allocated_on:date,p_amount:amount,p_reference:reference,p_note:note,p_actor:user.id

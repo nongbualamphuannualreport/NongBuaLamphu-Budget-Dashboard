@@ -4,7 +4,7 @@ export type ReallocationTransfer={
  allocated_on:string;amount:number;reference:string;note:string;created_at:string;cancelled_on:string|null;cancelled_reason:string|null
 };
 export const coreProject=(code:string)=>/^P(0[1-9]|10)$/.test(code);
-export const transferredProject=(code:string)=>/^T[0-9]{2,3}$/.test(code);
+export const transferredProject=(code:string)=>code==='P11'||/^T[0-9]{2,3}$/.test(code);
 export const additionalProject=(code:string)=>code!=='RESERVE'&&!coreProject(code)&&!transferredProject(code);
 const cent=(n:number)=>Math.round(n*100)/100;
 export function effectiveActivities<T extends MonitorActivity>(
