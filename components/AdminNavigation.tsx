@@ -22,7 +22,7 @@ const GROUPS:{heading:string;items:NavItem[]}[]=[
  ]},
  {heading:'กองเงินและรายงาน',items:[
   {id:'reserve',label:'เงินโอนเปลี่ยนแปลง',hint:'จัดสรร สร้างโครงการ และคืนเงิน',Icon:Wallet},
-  {id:'pdf',label:'รายงานและ PDF',hint:'ดาวน์โหลดเพื่อเสนอผู้บริหาร',Icon:FileDown},
+  {id:'pdf',label:'ดาวน์โหลดรายงาน',hint:'รายงานสำหรับเจ้าหน้าที่',Icon:FileDown},
  ]}
 ];
 const titles=Object.fromEntries(GROUPS.flatMap(g=>g.items.map(i=>[i.id,i.label])));
@@ -31,7 +31,7 @@ export function AdminNavigation({active,onSelect}:{active:AdminView|'reserve';on
  const label=titles[active]??'เมนูจัดการ';
  return <aside className="an-sidebar mon-noprint" aria-label="แถบเมนูระบบจัดการงบประมาณ">
    <div className="an-brand"><span className="an-brand-mark">NB</span><div>
-     <strong>Budget Monitor</strong><small>ระบบจัดการงบประมาณ พ.ศ. 2570</small>
+     <strong>จัดการงบประมาณ</strong><small>ระบบจัดการงบประมาณ พ.ศ. 2570</small>
    </div></div>
    <button className="an-toggle" type="button" aria-expanded={expanded} aria-controls="an-menu-list"
      onClick={()=>setExpanded(!expanded)}>
