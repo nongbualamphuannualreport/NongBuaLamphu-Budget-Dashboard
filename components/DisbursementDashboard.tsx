@@ -30,7 +30,8 @@ export function DisbursementDashboard(){
   const [view,setView] = useState<'overview'|'projects'|'activities'|'extras'|'reports'>('overview');
   const [menuOpen,setMenuOpen] = useState(false);
   const [menuCollapsed,setMenuCollapsed] = useState(false);
-  const selectView=(next:typeof view)=>{setView(next);setSearch('');setMenuOpen(false);window.scrollTo({top:0,behavior:'smooth'});};
+  useEffect(()=>{const value=new URLSearchParams(window.location.search).get('view');if(value&&(['overview','projects','activities','extras','reports'] as string[]).includes(value))setView(value as typeof view);},[]);
+  const selectView=(next:typeof view)=>{setView(next);setSearch('');setMenuOpen(false);const url=new URL(window.location.href);url.searchParams.set('view',next);window.history.replaceState(null,'',url.pathname+url.search+url.hash);window.scrollTo({top:0,behavior:'smooth'});};
   const [date,setDate] = useState('');
   const [reload,setReload] = useState(0);
   useEffect(()=>{
