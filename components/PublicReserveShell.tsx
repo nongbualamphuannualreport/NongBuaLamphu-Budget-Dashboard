@@ -1,7 +1,7 @@
 'use client';
 import {useState,type ReactNode} from 'react';
 import Link from 'next/link';
-import {Menu,X,PanelLeftClose,PanelLeftOpen,LayoutDashboard,FolderTree,ListTree,FolderPlus,Wallet,Download,LockKeyhole} from 'lucide-react';
+import {Menu,X,PanelLeftClose,PanelLeftOpen,LayoutDashboard,FolderTree,ListTree,FolderPlus,Wallet,LockKeyhole} from 'lucide-react';
 export function PublicReserveShell({children}:{children:ReactNode}){
  const [menuOpen,setMenuOpen]=useState(false);
  const [menuCollapsed,setMenuCollapsed]=useState(false);
@@ -14,8 +14,8 @@ export function PublicReserveShell({children}:{children:ReactNode}){
  {nav.map(({href,label,Icon})=><Link key={href} href={href} className="ds-sidebar-link" title={label} onClick={()=>setMenuOpen(false)}><Icon size={19}/><span>{label}</span></Link>)}
  <div className="ds-sidebar-group">บริหารเงินโอนเปลี่ยนแปลง</div>
  <Link href="/reserve" className="ds-sidebar-link active" title="เงินคงเหลือจากการโอนเปลี่ยนแปลง" aria-current="page" onClick={()=>setMenuOpen(false)}><Wallet size={19}/><span>เงินคงเหลือจากการโอนเปลี่ยนแปลง</span></Link>
- <div className="ds-sidebar-group">รายงานและจัดการ</div>
- <Link href="/?view=reports" className="ds-sidebar-link" title="รายงานและส่งออกข้อมูล" onClick={()=>setMenuOpen(false)}><Download size={19}/><span>รายงานและส่งออกข้อมูล</span></Link>
+ <div className="ds-sidebar-group">สำหรับเจ้าหน้าที่</div>
+ 
  <Link href="/admin" className="ds-sidebar-link" title="ระบบสำหรับเจ้าหน้าที่" onClick={()=>setMenuOpen(false)}><LockKeyhole size={19}/><span>ระบบสำหรับเจ้าหน้าที่</span></Link>
  </aside>
  <div className="ds-shell-main"><header className="ds-top"><div className="ds-top-inner"><div className="ds-menu-controls"><button type="button" className="ds-menu-mobile" aria-label="เปิดเมนูด้านซ้าย" aria-expanded={menuOpen} onClick={()=>setMenuOpen(true)}><Menu size={21}/></button></div><div className="ds-brand"><span className="ds-mark">นภ</span><div><strong>รายงานผลการเบิกจ่ายงบประมาณ</strong><small>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570</small></div></div><nav><Link href="/admin"><LockKeyhole size={15}/> เข้าสู่ระบบเจ้าหน้าที่</Link></nav></div></header><div className="ds-content">{children}</div></div>
