@@ -288,3 +288,23 @@
 .mon-admin-content .mon-project-search{flex:none;width:100%;max-width:none}
 }
 @media print{.mon-projects-toolbar,.mon-search-count{display:none!important}}
+
+
+/* Admin-only data export controls */
+@media screen{
+ .mon-csv-export{border-color:#cfe3d6;background:linear-gradient(110deg,#f7fbf8,#fff)}
+ .mon-csv-heading{display:flex;gap:12px;align-items:flex-start;color:#1b7656}
+ .mon-csv-heading>svg{flex:none;margin-top:4px}
+ .mon-csv-heading h2{margin:0;color:#1b513d}
+ .mon-csv-heading p{font-size:13px;margin:5px 0 0;color:#6d8579}
+ .mon-csv-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+ .mon-wrap .mon-csv-actions button{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:#1d684d;border:1px solid #bcd7c7;min-height:45px;font-size:14px;font-weight:700;padding:9px 15px}
+ .mon-wrap .mon-csv-actions button:first-child{background:#176b51;color:#fff;border-color:#176b51}
+ .mon-wrap .mon-csv-actions button:hover:not(:disabled){background:#e7f4ed;color:#11553f}
+ .mon-wrap .mon-csv-actions button:first-child:hover:not(:disabled){background:#11543f;color:#fff}
+}
+@media screen and (max-width:620px){
+ .mon-csv-actions{display:grid;grid-template-columns:1fr}
+ .mon-csv-actions button{width:100%}
+}
+@media print{.mon-csv-export{display:none!important}}
