@@ -169,3 +169,33 @@
  .ra-activity-totals span{padding:8px}
  .ra-activity-totals b{font-size:14px}
 }
+
+
+/* Consistent management header across reserve and other admin sections */
+@media screen{
+.ra-shell .ra-unified-head{width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap;border-bottom:1px solid #dce8e0;padding:12px 0 22px;margin-bottom:16px}
+.ra-unified-head .ra-head-title{min-width:260px;flex:1 1 400px}
+.ra-shell .ra-unified-head .ra-back-public{display:inline-flex;align-items:center;min-height:32px;color:#1b735a;font-weight:500;font-size:14px}
+.ra-shell .ra-unified-head h1{font-size:clamp(28px,3vw,36px);line-height:1.4;margin:8px 0 0;color:#16352f}
+.ra-shell .ra-unified-head p{font-size:14px;line-height:1.75;margin:10px 0 0;color:#698077}
+.ra-shell .ra-unified-head .ra-internal-badge{display:inline-block;margin:8px 0!important;padding:5px 12px;background:#eaf5ed;border:1px solid #d1e6d7;border-radius:30px;color:#16694f!important;font-size:11px!important;font-weight:700}
+.ra-unified-head .ra-head-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:flex-end;flex:0 0 auto}
+.ra-shell .ra-head-actions button{background:#176e53;color:#fff;border:1px solid #176e53;border-radius:8px;font-size:14px;min-height:44px;padding:10px 15px}
+.ra-shell .ra-head-actions button:hover:not(:disabled){background:#115840}
+.ra-current-view{background:linear-gradient(100deg,#f2f8f4,#fff);border:1px solid #dce8df;border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.ra-current-view strong{display:block;color:#1b604a;font-size:20px;line-height:1.5}
+.ra-current-view p{margin:2px 0 0;font-size:13px;color:#758e81}
+}
+@media screen and (max-width:1024px){
+.ra-shell .ra-unified-head{flex-direction:column;gap:12px}
+.ra-unified-head .ra-head-title{flex:none;width:100%;min-width:0}
+.ra-unified-head .ra-head-actions{width:100%;justify-content:flex-start}
+}
+@media screen and (max-width:600px){
+.ra-shell .ra-unified-head h1{font-size:26px}
+.ra-shell .ra-unified-head .ra-head-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.ra-shell .ra-head-actions button{min-width:0;font-size:13px}
+.ra-current-view{padding:13px 15px}
+.ra-current-view strong{font-size:18px}
+}
+@media print{.ra-unified-head .ra-head-actions,.ra-current-view{display:none!important}}
