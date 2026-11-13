@@ -22,7 +22,7 @@
 .an-outbound{margin:18px 7px 2px;padding-top:14px;border-top:1px solid #e6eee9}
 .an-outbound a{display:flex;align-items:center;gap:9px;color:#547467!important;font-size:12px!important;text-decoration:none}
 .an-sidebar .an-toggle{display:none}
-@media(max-width:1000px){
+@media(max-width:1100px){
  .an-sidebar{position:relative;top:auto;width:100%;max-height:none;overflow:visible;padding:12px}
  .an-brand{padding:2px 5px 10px}
  .an-sidebar .an-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;margin:11px 0 0;
