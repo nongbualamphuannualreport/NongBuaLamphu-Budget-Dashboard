@@ -70,14 +70,14 @@ export default function ReserveAdmin(){
   <div className={"ra-admin-layout"+(!session?" ra-admin-layout-login":"")}>
     {session&&<AdminNavigation active="reserve"/>}
     <div className="ra-admin-main">
-  {session&&<div className="ra-current-view"><strong>ระบบจัดการงบประมาณ / เงินโอนเปลี่ยนแปลง</strong><p>จัดสรรเงิน สร้างโครงการ และติดตามผลเบิกจ่ายจากกองเงินโอนเปลี่ยนแปลง</p></div>}
-  {!ready?<p>กำลังตรวจสอบสิทธิ์...</p>:!session?<section className="ra-card"><h2>เข้าสู่ระบบเจ้าหน้าที่</h2><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{if(!client)throw Error('Supabase ยังไม่พร้อม');const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;}catch(e){setError(e instanceof Error?e.message:'เข้าสู่ระบบไม่สำเร็จ');}finally{setBusy(false);}}}><label>อีเมล<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>รหัสผ่าน<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={busy}>เข้าสู่ระบบ</button></form></section>:
+  {session&&<div className="ra-current-view"><strong>ระบบจัดการงบประมาณ / เงินโอนเปลี่ยนแปลง</strong><p>จัดสรรเงินและติดตามผลการใช้จ่าย</p></div>}
+  {!ready?<p>กำลังตรวจสอบสิทธิ์...</p>:!session?<section className="ra-card"><h2>เข้าสู่ระบบเจ้าหน้าที่</h2><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{if(!client)throw Error('ไม่สามารถเชื่อมต่อระบบข้อมูลได้ กรุณาติดต่อผู้ดูแล');const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;}catch(e){setError(e instanceof Error?e.message:'เข้าสู่ระบบไม่สำเร็จ');}finally{setBusy(false);}}}><label>อีเมล<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>รหัสผ่าน<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={busy}>เข้าสู่ระบบ</button></form></section>:
   <>
    {error&&<p className="ra-error" role="alert">{error}</p>}{success&&<p className="ra-success" role="status">{success}</p>}
    {!loaded?<p>กำลังอ่านข้อมูลกองเงิน...</p>:<>
     <section className="ra-kpis"><div><span>กองเงินตั้งต้น</span><strong>{fmt(source)}</strong><small>บาท</small></div><div><span>จัดสรรแล้ว</span><strong>{fmt(allocated)}</strong><small>บาท</small></div><div className="ra-balance"><span>ยังไม่จัดสรร</span><strong>{fmt(remaining)}</strong><small>บาท</small></div></section>
     <section className="ra-allocation-toolbar" aria-label="จัดการกองเงินโอนเปลี่ยนแปลง">
-      <div><h2>จัดสรรเงินโอนเปลี่ยนแปลง</h2><p>สร้างโครงการใหม่หรือเพิ่มกิจกรรมจากวงเงินที่ยังไม่จัดสรร ระบบจะตรวจสอบวงเงินก่อนบันทึก</p></div>
+      <div><h2>จัดสรรเงินโอนเปลี่ยนแปลง</h2><p>เพิ่มโครงการหรือกิจกรรมตามวงเงินที่ได้รับอนุมัติ</p></div>
       <button type="button" className="ra-create-button" onClick={()=>{setError('');setSuccess('');setAllocationOpen(true);}} disabled={busy||remaining<=0}>+ สร้างโครงการจากเงินโอน</button>
     </section>
     {allocationOpen&&<div className="ra-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAllocationOpen(false);}}>
@@ -102,7 +102,7 @@ export default function ReserveAdmin(){
       </div>
     </div>}
     <section className="ra-card ra-projects-card"><h2>โครงการที่ได้รับจัดสรรจากกองเงินนี้</h2>
-      <p>จัดการชื่อกิจกรรมและหน่วยดำเนินการ บันทึก PO และผลเบิกจ่ายได้เหมือนโครงการหลัก โดยยังคงวงเงินที่จัดสรรและหลักฐานการโอนเดิมไว้</p>
+      <p>เลือกโครงการเพื่อแก้ไขกิจกรรม บันทึกยอดผูกพัน (PO) หรือเบิกจ่าย</p>
       {activeByProject.length===0?<p>ยังไม่มีโครงการที่ได้รับจัดสรรจากกองเงินนี้</p>:activeByProject.map(project=>{
         const projectActivities=project.allocations.map(t=>({transfer:t,activity:transferredActivities.find(a=>a.id===t.activity_id)}));
         const projectBudget=project.allocations.reduce((v,t)=>v+Number(t.amount),0);
@@ -117,16 +117,16 @@ export default function ReserveAdmin(){
           {expanded&&<div className="ra-funded-project-body">
             {projectActivities.map(({transfer,activity})=><section className="ra-funded-activity" key={transfer.id}>
               <div className="ra-funded-activity-head"><div><strong>{activity?.name??transfer.activity_name}</strong><small>หน่วยดำเนินการ: {activity?.agency||transfer.agency||'ไม่ระบุ'} · จัดสรร {thai(transfer.allocated_on)}</small><small>เอกสารอ้างอิง: {transfer.reference}</small></div><b>{fmt(Number(transfer.amount))} บาท</b></div>
-              {activity?<TransferActivityManager activity={activity} allocatedOn={transfer.allocated_on} entries={entries.filter(e=>e.activity_id===activity.id)} poEntries={poEntries.filter(p=>p.activity_id===activity.id)} getToken={getToken} onSaved={reload}/>:<p className="ra-error">ไม่พบข้อมูลกิจกรรมที่เชื่อมกับรายการจัดสรรนี้ กรุณาตรวจสอบฐานข้อมูลก่อนทำรายการ</p>}
+              {activity?<TransferActivityManager activity={activity} allocatedOn={transfer.allocated_on} entries={entries.filter(e=>e.activity_id===activity.id)} poEntries={poEntries.filter(p=>p.activity_id===activity.id)} getToken={getToken} onSaved={reload}/>:<p className="ra-error">ข้อมูลกิจกรรมนี้ไม่พร้อมใช้งาน กรุณาติดต่อผู้ดูแลระบบ</p>}
             </section>)}
           </div>}
         </article>;
       })}
-      <div className="ra-transfer-history"><h3>ประวัติการจัดสรรเงินโอน</h3><p>ประวัติเดิมจะไม่ถูกลบ แม้ยกเลิกการจัดสรรแล้ว</p>
+      <div className="ra-transfer-history"><h3>ประวัติการจัดสรรเงินโอน</h3>
         <div className="ra-table-wrap"><table><thead><tr><th>โครงการ / กิจกรรม</th><th>วันที่จัดสรร</th><th>วงเงิน</th><th>เอกสารอ้างอิง</th><th>สถานะ</th></tr></thead><tbody>{transfers.length===0?<tr><td colSpan={5}>ยังไม่มีประวัติการจัดสรร</td></tr>:transfers.map(t=><tr key={t.id}><td><strong>{t.project_code} · {t.project_name}</strong><small>{t.activity_name}</small></td><td>{thai(t.allocated_on)}</td><td>{fmt(Number(t.amount))}</td><td>{t.reference}</td><td>{t.cancelled_on?'ยกเลิก '+thai(t.cancelled_on):'มีผล'}</td></tr>)}</tbody></table></div>
       </div>
     </section>
-    {usedCodes.length>0&&<section className="ra-card"><h2>ยกเลิกการจัดสรรและคืนเงินเข้ากอง</h2><p>ต้องไม่มีรายการ PO หรือการเบิกจ่ายของโครงการนี้ ระบบจะบันทึกวันที่และเหตุผลการยกเลิกไว้ถาวร</p>
+    {usedCodes.length>0&&<section className="ra-card"><h2>ยกเลิกการจัดสรรและคืนเงินเข้ากอง</h2><p>ยกเลิกได้เฉพาะโครงการที่ยังไม่มี PO หรือการเบิกจ่าย และต้องระบุเหตุผล</p>
      <form onSubmit={e=>{e.preventDefault();if(!window.confirm('ยืนยันยกเลิกการจัดสรรทั้งโครงการและคืนเงินเข้ากอง?'))return;void send({action:'cancel',project_code:cancelTarget,cancelled_on:cancelDate,reason:cancelReason});}}>
       <div className="ra-form"><label>โครงการ<select required value={cancelTarget} onChange={e=>setCancelTarget(e.target.value)}><option value="">เลือกโครงการ</option>{usedCodes.map(code=><option key={code} value={code}>{code} · {active.find(t=>t.project_code===code)?.project_name}</option>)}</select></label><label>วันที่ยกเลิก<input type="date" min="2026-11-10" max="2027-09-30" required value={cancelDate} onChange={e=>setCancelDate(e.target.value)}/></label><label className="ra-wide">เหตุผล / หลักฐานการยกเลิก<input required minLength={8} maxLength={1000} value={cancelReason} onChange={e=>setCancelReason(e.target.value)}/></label></div>
       <button className="ra-outline" disabled={busy||!cancelTarget||cancelReason.trim().length<8}>ยกเลิกจัดสรรและคืนยอดเข้ากอง</button>
