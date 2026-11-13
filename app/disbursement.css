@@ -358,3 +358,35 @@
  .ds-sidebar-head{justify-content:flex-start!important}
 }
 @media print{.ds-sidebar,.ds-menu-controls,.ds-sidebar-backdrop{display:none!important}.ds-shell,.ds-shell-collapsed{display:block}}
+
+
+/* v3.2: sidebar control belongs to the sidebar header, not the middle of the top bar */
+.ds-sidebar-head{gap:10px;margin:0 3px 20px;min-height:45px}
+.ds-sidebar-brand{flex:1;min-width:0}
+.ds-sidebar-collapse{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;background:#fff;border:1px solid #e2e9e5;border-radius:9px;color:#58716d;cursor:pointer;transition:background .15s,border-color .15s}
+.ds-sidebar-collapse:hover,.ds-sidebar-collapse:focus-visible{background:#e8f2ec;border-color:#b7d4c8;color:#16634f}
+.ds-sidebar-collapse:focus-visible,.ds-sidebar-link:focus-visible,.ds-menu-mobile:focus-visible{outline:2px solid #257a63;outline-offset:2px}
+.ds-menu-controls:empty{display:none}
+.ds-shell .ds-top-inner{justify-content:space-between;gap:14px}
+.ds-shell .ds-top .ds-brand{margin-right:auto}
+.ds-shell-collapsed .ds-sidebar-head{flex-direction:column;align-items:center;gap:13px}
+.ds-shell-collapsed .ds-sidebar-head .ds-sidebar-collapse{display:grid}
+.ds-shell-collapsed .ds-sidebar-brand{display:none}
+.ds-shell-collapsed .ds-sidebar-head .ds-mark{width:40px;height:40px}
+.ds-shell-collapsed .ds-sidebar-link{position:relative}
+.ds-shell-collapsed .ds-sidebar-link:hover:after{content:attr(title);position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:8px;white-space:nowrap;background:#1c3a42;color:white;font-size:12px;font-weight:400;padding:8px 11px;border-radius:7px;z-index:70;pointer-events:none}
+@media(min-width:901px){.ds-menu-controls{display:none!important}}
+@media(max-width:900px){
+ .ds-menu-controls{display:flex}
+ .ds-sidebar-collapse{display:none!important}
+ .ds-shell-collapsed .ds-sidebar-brand{display:block}
+ .ds-shell-collapsed .ds-sidebar-head{flex-direction:row;justify-content:flex-start;gap:10px}
+ .ds-sidebar-head{margin:0 3px 20px}
+ .ds-shell .ds-top-inner{gap:10px}
+ .ds-shell .ds-brand{flex:1;min-width:0}
+}
+@media(max-width:600px){
+ .ds-shell .ds-top .ds-brand{margin-right:0}
+ .ds-shell .ds-top-inner{gap:9px}
+ .ds-menu-controls button{min-width:40px;min-height:40px}
+}
