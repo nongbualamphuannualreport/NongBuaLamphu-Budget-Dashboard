@@ -52,7 +52,7 @@ function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean
     </div>}
   </article>;
 }
-export function ProjectHierarchy({report,search}:{report:DisbursementReport;search:string}){
+export function ProjectHierarchy({report,search,mode='all'}:{report:DisbursementReport;search:string;mode?:'all'|'core'|'extras'}){
   const [opened,setOpened]=useState('');
   const [openedGroup,setOpenedGroup]=useState('');
   const [openedActivity,setOpenedActivity]=useState('');
@@ -82,7 +82,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
   }),[report,search,q]);
   const shown=grouped.filter(item=>item.visible);
   return <div className="ph-wrap">
-    <div className="ph-intro"><div><h3><Layers3 size={20}/> โครงการตามแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2570</h3><p>เลือกโครงการเพื่อดูรายละเอียดระดับกิจกรรมและกิจกรรมย่อย รวมทั้งวงเงิน ผลเบิกจ่ายสะสม และหน่วยดำเนินการ</p></div>
+    {mode!=='extras'&&<><div className="ph-intro"><div><h3><Layers3 size={20}/> โครงการตามแผนปฏิบัติราชการประจำปีงบประมาณ พ.ศ. 2570</h3><p>เลือกโครงการเพื่อดูรายละเอียดระดับกิจกรรมและกิจกรรมย่อย รวมทั้งวงเงิน ผลเบิกจ่ายสะสม และหน่วยดำเนินการ</p></div>
       <span className="ph-count"><Landmark size={17}/> {projects.length} โครงการ</span></div>
     {shown.length===0&&<div className="ph-no-results"><Search size={19}/> ไม่พบโครงการหรือกิจกรรมที่ตรงกับการค้นหา</div>}
     {shown.map(({project,code,rows,nodes})=>{
@@ -117,7 +117,8 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
         </div>}
       </section>;
     })}
-    {extraProjects.length>0&&<section className="ph-extras">
+    </>}
+    {mode!=='core'&&<>{extraProjects.length>0&&<section className="ph-extras">
       <h3>โครงการเพิ่มเติมนอกบัญชี 10 โครงการหลัก</h3>
       <p>แสดงตามแหล่งงบประมาณโดยไม่นำมารวมในจำนวนโครงการหลัก</p>
       {extraProjects.map(p=><div className="ph-extra-row" key={p.code}>
@@ -125,7 +126,8 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
         <div><b>{money(p.budget)} บาท</b><small>PO {money(p.po)} · เบิกจ่าย {money(p.disbursed)}</small></div>
       </div>)}
     </section>}
-    {reserve&&<Link className="ph-reserve ph-reserve-link" href="/reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>กองเงินแยกสำหรับสร้างโครงการใหม่ · ดูยอดที่จัดสรรไปแล้วและเงินคงเหลือ</p></div><b>{money(reserve.budget)} บาท</b><ChevronRight size={19}/></Link>}
+    {mode==='all'&&reserve&&<Link className="ph-reserve ph-reserve-link" href="/reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>กองเงินแยกสำหรับสร้างโครงการใหม่ · ดูยอดที่จัดสรรไปแล้วและเงินคงเหลือ</p></div><b>{money(reserve.budget)} บาท</b><ChevronRight size={19}/></Link>}
+    </>}
     <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงตามบัญชีหน่วยดำเนินการ ณ 10 พฤศจิกายน 2569 โดยไม่นับซ้ำกับยอดงบประมาณรายโครงการ</p>
   </div>;
 }
