@@ -77,13 +77,13 @@ export function MonitorAdmin(){
  function editMaster(a:MonitorActivity){
    setMasterVisible(true);setMasterNew(false);setMasterId(a.id);setMasterProject(a.project_code);setMasterProjectName(a.project_name);
    setMasterName(a.name);setMasterAgency(a.agency);setMasterBudget(String(a.budget));
-   setModalError('');setSection('activities');setSelected(a.project_code);
+   setModalError('');setSection('projects');setSelected(a.project_code);
  }
  function createMaster(projectCode=''){
    setMasterVisible(true);setMasterNew(true);setMasterId('');setMasterProject(projectCode);
    setMasterProjectName(activities.find(a=>a.project_code===projectCode)?.project_name??'');
    setMasterName('');setMasterAgency('');setMasterBudget('');
-   setModalError('');setSection('activities');
+   setModalError('');setSection('projects');
  }
  async function mutateMaster(payload:Record<string,unknown>){
    setBusy(true);setError('');setMessage('');
