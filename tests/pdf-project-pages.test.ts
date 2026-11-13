@@ -57,6 +57,7 @@ test('reduction rows appear directly beneath the affected activity, not as anoth
  const entries=paginatePdfProjectDetails([p1,p2],[a('P01',1),a('P02',1)],[red]).flat();
  const first=entries.findIndex(x=>x.kind==='activity'&&x.row.id==='P01-1');
  assert.equal(entries[first+1]?.kind,'reduction');
- if(entries[first+1]?.kind==='reduction')assert.equal(entries[first+1].row.amount,-200);
+ const reduction=entries[first+1];
+ if(reduction?.kind==='reduction')assert.equal(reduction.row.amount,-200);
  assert.equal(entries.filter(x=>x.kind==='project').length,2);
 });
