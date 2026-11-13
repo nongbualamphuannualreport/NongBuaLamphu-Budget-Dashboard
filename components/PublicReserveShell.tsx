@@ -9,10 +9,10 @@ export function PublicReserveShell({children}:{children:ReactNode}){
  return <main className="ds-wrap"><div className={'ds-screen ds-shell'+(menuCollapsed?' ds-shell-collapsed':'')}>
  {menuOpen&&<button type="button" className="ds-sidebar-backdrop" aria-label="ปิดเมนู" onClick={()=>setMenuOpen(false)}/>}
  <aside className={'ds-sidebar'+(menuOpen?' ds-sidebar-open':'')} aria-label="เมนูรายงานงบประมาณ">
- <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div className="ds-sidebar-brand"><strong>Budget Dashboard</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button type="button" className="ds-sidebar-collapse" onClick={()=>setMenuCollapsed(v=>!v)} aria-label={menuCollapsed?'ขยายเมนูด้านซ้าย':'ย่อเมนูด้านซ้าย'} title={menuCollapsed?'ขยายเมนู':'ย่อเมนู'} aria-expanded={!menuCollapsed}>{menuCollapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><button type="button" className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
+ <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div className="ds-sidebar-brand"><strong>รายงานงบประมาณ</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button type="button" className="ds-sidebar-collapse" onClick={()=>setMenuCollapsed(v=>!v)} aria-label={menuCollapsed?'ขยายเมนูด้านซ้าย':'ย่อเมนูด้านซ้าย'} title={menuCollapsed?'ขยายเมนู':'ย่อเมนู'} aria-expanded={!menuCollapsed}>{menuCollapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><button type="button" className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
  <div className="ds-sidebar-group">ภาพรวมและโครงการ</div>
  {nav.map(({href,label,Icon})=><Link key={href} href={href} className="ds-sidebar-link" title={label} onClick={()=>setMenuOpen(false)}><Icon size={19}/><span>{label}</span></Link>)}
- <div className="ds-sidebar-group">บริหารเงินโอนเปลี่ยนแปลง</div>
+ <div className="ds-sidebar-group">เงินโอนเปลี่ยนแปลง</div>
  <Link href="/reserve" className="ds-sidebar-link active" title="เงินคงเหลือจากการโอนเปลี่ยนแปลง" aria-current="page" onClick={()=>setMenuOpen(false)}><Wallet size={19}/><span>เงินคงเหลือจากการโอนเปลี่ยนแปลง</span></Link>
  <div className="ds-sidebar-group">สำหรับเจ้าหน้าที่</div>
  
