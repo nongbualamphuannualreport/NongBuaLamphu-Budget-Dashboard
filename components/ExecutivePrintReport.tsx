@@ -74,7 +74,7 @@ export function ExecutivePrintReport({ report, preview, mode, printedAt }: Props
       <PageTitle number="01" name="สรุปผลการเบิกจ่ายรายโครงการ" sub="งบประมาณ · ผลเบิกจ่ายสะสม · คงเหลือ และอัตราความก้าวหน้า"/>
       <div className="pr-table-panel">
         <table className="pr-table pr-project-table"><thead><tr><th>โครงการ</th><th>งบประมาณ</th><th>เบิกจ่ายแล้ว</th><th>คงเหลือ</th><th>ร้อยละ</th></tr></thead>
-          <tbody>{projects.map((p,i)=><tr key={p.code??i}><td><span className="pr-code">{p.code==='RESERVE'?'เงินเหลือจ่าย':String(i+1).padStart(2,'0')}</span><strong>{p.name??p.activity}</strong></td><td><Money value={p.budget}/></td><td><Money value={p.disbursed}/></td><td><Money value={p.remaining}/></td><td><b>{percentTH(p.disbursed,p.budget)}%</b></td></tr>)}</tbody>
+          <tbody>{projects.map((p,i)=><tr key={p.code??i}><td><span className="pr-code">{p.code==='RESERVE'?'เงินโอนเปลี่ยนแปลง':String(i+1).padStart(2,'0')}</span><strong>{p.name??p.activity}</strong></td><td><Money value={p.budget}/></td><td><Money value={p.disbursed}/></td><td><Money value={p.remaining}/></td><td><b>{percentTH(p.disbursed,p.budget)}%</b></td></tr>)}</tbody>
           <tfoot><tr><td>รวมทั้งสิ้น</td><td><Money value={budget}/></td><td><Money value={paid}/></td><td><Money value={remain}/></td><td>{percentTH(paid,budget)}%</td></tr></tfoot>
         </table>
       </div>
