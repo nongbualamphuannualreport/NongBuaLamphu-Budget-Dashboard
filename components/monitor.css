@@ -263,3 +263,28 @@
   .mon-admin-content .mon-kpi{padding:11px}
   .mon-filters .mon-controls label{flex-wrap:wrap}
 }
+
+
+/* Admin project list: prominent action and accessible search field */
+@media screen{
+.mon-admin-content .mon-projects-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;min-width:0}
+.mon-admin-content .mon-projects-heading h2{margin:0;color:#1e4438}
+.mon-admin-content .mon-projects-heading p{margin:0;color:#75877f}
+.mon-admin-content .mon-projects-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 18px;padding:12px 0 18px;border-bottom:1px solid #e1ece5;margin-bottom:13px}
+.mon-wrap .mon-projects-toolbar .mon-project-add{display:inline-flex;align-items:center;justify-content:center;gap:9px;flex:0 0 auto;min-height:47px;padding:11px 17px;border:1px solid #13634c;border-radius:10px;background:#176b51;color:#fff;font-size:14px;font-weight:700;box-shadow:0 3px 10px #164f3b20;white-space:normal;text-align:center}
+.mon-wrap .mon-projects-toolbar .mon-project-add:hover{background:#10543e;color:#fff}
+.mon-project-search{position:relative;display:flex;align-items:center;flex:1 1 315px;max-width:520px;min-width:min(250px,100%);border:1.5px solid #b9d3c5;border-radius:11px;background:#fff;min-height:47px;transition:border-color .15s,box-shadow .15s}
+.mon-project-search:focus-within{border-color:#177451;box-shadow:0 0 0 3px #17745118}
+.mon-project-search .mon-project-search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#277357;pointer-events:none;flex:none}
+.mon-wrap .mon-project-search input.mon-search,.mon-admin-content .mon-project-search input.mon-search{width:100%;max-width:none;min-width:0;min-height:45px;border:0;background:transparent;padding:10px 45px 10px 43px;box-shadow:none;outline:none;font-size:15px}
+.mon-project-search input::placeholder{color:#758b82;opacity:1}
+.mon-wrap .mon-project-search .mon-search-clear{position:absolute;right:5px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;background:#edf4ef;color:#476c5a;border:0;border-radius:8px}
+.mon-project-search .mon-search-clear:hover{background:#d8e8dd}
+.mon-search-count{margin:0 0 12px;color:#3b755a;font-size:13px;font-weight:700}
+}
+@media screen and (max-width:760px){
+.mon-admin-content .mon-projects-toolbar{flex-direction:column;align-items:stretch;gap:12px}
+.mon-wrap .mon-projects-toolbar .mon-project-add{width:100%}
+.mon-admin-content .mon-project-search{flex:none;width:100%;max-width:none}
+}
+@media print{.mon-projects-toolbar,.mon-search-count{display:none!important}}
