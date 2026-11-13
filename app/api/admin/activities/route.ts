@@ -39,6 +39,29 @@ export async function POST(req:NextRequest){
   const action=p.action;
   const db=serverDb();
   try{
+    if(action==='update-transfer-activity'){
+      // Reallocation amounts and their approved records are immutable here.
+      // Only operational metadata is editable; the allocation remains the source of truth.
+      const id=requireText(p.id,100);
+      const name=requireText(p.name,500),agency=requireText(p.agency,180);
+      if(!id||!name)return bad('กรุณาระบุกิจกรรมและชื่อกิจกรรมที่ต้องการแก้ไข');
+      const {data:original,error:readError}=await db.from('monitor_activities').select('*').eq('id',id).maybeSingle();
+      if(readError)return bad(readError.message,500);
+      if(!original)return bad('ไม่พบกิจกรรม',404);
+      if(original.project_code!=='P11'&&!/^T[0-9]{2,3}$/.test(original.project_code))
+        return bad('คำสั่งนี้ใช้ได้กับกิจกรรมที่จัดสรรจากกองเงินโอนเท่านั้น',422);
+      const {data:transfer,error:transferError}=await db.from('monitor_reallocation_transfers')
+        .select('id,activity_id,amount,project_code').eq('activity_id',id).is('cancelled_on',null).maybeSingle();
+      if(transferError)return bad(transferError.message,500);
+      if(!transfer||transfer.project_code!==original.project_code)
+        return bad('ไม่พบหลักฐานการจัดสรรเงินที่ยังมีผล จึงไม่สามารถแก้ไขกิจกรรมได้',422);
+      if(Math.abs(Number(original.budget)-Number(transfer.amount))>.005)
+        return bad('วงเงินกิจกรรมไม่ตรงกับหลักฐานการจัดสรร โปรดตรวจสอบก่อนแก้ไข',422);
+      const {data,error}=await db.from('monitor_activities').update({name,agency}).eq('id',id).select('*').single();
+      if(error)return bad(error.message,500);
+      const warning=await audit(db,'update',original,data,user.id);
+      return NextResponse.json({ok:true,activity:data,warning},{headers:{'Cache-Control':'no-store'}});
+    }
     if(action==='create-activity'){
       const project_code=requireText(p.project_code,20).toUpperCase();
       const project_name=requireText(p.project_name,350);
