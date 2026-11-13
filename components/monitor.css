@@ -195,3 +195,71 @@
 @media print{.mon-admin-layout{display:block!important;margin:0!important}
 .mon-current-view{display:none!important}.mon-menu-instructions{display:none!important}
 .mon-admin-content{display:block!important}}
+
+
+/* v3.4 — responsive full-width admin workspace. Keep the print stylesheet unchanged. */
+@media screen {
+  .mon-wrap:not(.mon-login){
+    width:100%; max-width:none; margin:0; min-width:0;
+    padding:clamp(16px,1.8vw,34px) clamp(16px,2.15vw,46px) 64px;
+    overflow-x:clip;
+  }
+  .mon-wrap .mon-header{width:100%;min-width:0;gap:16px 24px}
+  .mon-wrap .mon-header>div:first-child{min-width:min(300px,100%)}
+  .mon-wrap .mon-header .mon-actions{flex:0 0 auto}
+  .mon-admin-layout{
+    display:grid; width:100%; min-width:0;
+    grid-template-columns:clamp(235px,16vw,272px) minmax(0,1fr);
+    gap:clamp(14px,1.55vw,28px);
+    align-items:start;
+  }
+  .mon-admin-content,.mon-admin-content>section,.mon-admin-content>.mon-box,
+  .mon-project,.mon-project-toggle,.mon-current-view{min-width:0;max-width:100%}
+  .mon-admin-content{width:100%}
+  .mon-current-view span{overflow-wrap:anywhere}
+  .mon-admin-content .mon-box{width:100%;padding:clamp(16px,1.7vw,30px)}
+  .mon-admin-content .mon-kpis{width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mon-admin-content .mon-kpi{min-width:0}
+  .mon-admin-content .mon-kpi strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+  .mon-filters{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+  .mon-filters>div:first-child{flex:1 1 240px;min-width:0}
+  .mon-filters .mon-controls{display:flex;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;max-width:100%;gap:8px}
+  .mon-filters .mon-controls label{min-width:0}
+  .mon-filters .mon-controls input{max-width:100%}
+  .mon-project-toggle span,.mon-box h2,.mon-justify>div{min-width:0;overflow-wrap:anywhere}
+  .mon-justify .mon-master-actions{max-width:100%;min-width:0}
+  .mon-row-actions{flex-wrap:wrap}
+  .mon-scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+  .mon-scroll table{max-width:none}
+  .mon-modal-panel{max-width:calc(100vw - 30px)}
+}
+@media screen and (min-width:1101px) and (max-width:1340px){
+  .mon-admin-layout{grid-template-columns:235px minmax(0,1fr);gap:16px}
+  .mon-admin-content .mon-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media screen and (max-width:1100px){
+  .mon-admin-layout{grid-template-columns:minmax(0,1fr);gap:14px}
+  .mon-admin-content .mon-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mon-filters .mon-controls{justify-content:flex-start}
+}
+@media screen and (max-width:700px){
+  .mon-wrap:not(.mon-login){padding:16px 13px 42px}
+  .mon-wrap .mon-header .mon-actions{width:100%;display:flex;flex-wrap:wrap}
+  .mon-wrap .mon-header .mon-actions button{flex:1 1 145px}
+  .mon-admin-content .mon-box{padding:16px 14px}
+  .mon-admin-content .mon-kpis{gap:9px}
+  .mon-admin-content .mon-kpi{padding:13px}
+  .mon-admin-content .mon-kpi strong{font-size:clamp(17px,4.4vw,23px)}
+  .mon-filters .mon-controls{width:100%}
+  .mon-filters .mon-tabs{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mon-filters .mon-controls label{width:100%;justify-content:space-between}
+  .mon-current-view{padding:13px 15px}
+  .mon-current-view span{font-size:17px}
+  .mon-admin-content .mon-search{max-width:100%;min-width:0;width:100%}
+  .mon-justify .mon-master-actions{width:100%}
+}
+@media screen and (max-width:380px){
+  .mon-admin-content .mon-kpi strong{font-size:16px}
+  .mon-admin-content .mon-kpi{padding:11px}
+  .mon-filters .mon-controls label{flex-wrap:wrap}
+}
