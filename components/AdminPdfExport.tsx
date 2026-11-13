@@ -218,7 +218,7 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
               <div>
                 <strong>{item.row.name}</strong>
                 {item.row.agency&&<small>{item.row.agency}</small>}
-                {report.rows.find(a=>a.id===item.row.id)?.po>0&&
+                {(report.rows.find(a=>a.id===item.row.id)?.po??0)>0&&
                   <small>PO คงค้าง {fmt(report.rows.find(a=>a.id===item.row.id)?.po??0)} บาท</small>}
               </div>
             </div>
