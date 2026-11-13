@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { DisbursementReport, DisbursementRow } from '@/lib/disbursement';
 import { moneyTH, percentTH } from '@/lib/disbursement';
-import { BarChart3, CalendarDays, FileSpreadsheet, LockKeyhole, RefreshCw, Search, Menu, X, LayoutDashboard, FolderTree, ListTree, FolderPlus, Wallet, Download } from 'lucide-react';
+import { BarChart3, CalendarDays, FileSpreadsheet, LockKeyhole, RefreshCw, Search, Menu, X, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, ListTree, FolderPlus, Wallet, Download } from 'lucide-react';
 
 import { ProjectHierarchy } from './ProjectHierarchy';
 
@@ -63,7 +63,7 @@ export function DisbursementDashboard(){
     <div className={'ds-screen ds-shell'+(menuCollapsed?' ds-shell-collapsed':'')}>
       {menuOpen&&<button className="ds-sidebar-backdrop" aria-label="ปิดเมนู" onClick={()=>setMenuOpen(false)}/>}
       <aside className={'ds-sidebar'+(menuOpen?' ds-sidebar-open':'')} aria-label="เมนูรายงานงบประมาณ">
-        <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div><strong>Budget Dashboard</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
+        <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div className="ds-sidebar-brand"><strong>Budget Dashboard</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button type="button" className="ds-sidebar-collapse" onClick={()=>setMenuCollapsed(v=>!v)} aria-label={menuCollapsed?"ขยายเมนูด้านซ้าย":"ย่อเมนูด้านซ้าย"} title={menuCollapsed?"ขยายเมนู":"ย่อเมนู"} aria-expanded={!menuCollapsed}>{menuCollapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><button type="button" className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
         <div className="ds-sidebar-group">ภาพรวมและโครงการ</div>
         {navItems.slice(0,4).map(({id,label,Icon})=><button key={id} className={'ds-sidebar-link'+(view===id?' active':'')} onClick={()=>selectView(id)} aria-current={view===id?'page':undefined} title={label}><Icon size={19}/><span>{label}</span></button>)}
         <div className="ds-sidebar-group">บริหารเงินโอนเปลี่ยนแปลง</div>
@@ -73,7 +73,7 @@ export function DisbursementDashboard(){
         <Link className="ds-sidebar-link" href="/admin"><LockKeyhole size={19}/><span>ระบบสำหรับเจ้าหน้าที่</span></Link>
       </aside>
       <div className="ds-shell-main">
-      <header className="ds-top"><div className="ds-top-inner"><div className="ds-menu-controls"><button className="ds-menu-mobile" aria-label="เปิดเมนู" onClick={()=>setMenuOpen(true)}><Menu size={21}/></button><button className="ds-menu-desktop" aria-label={menuCollapsed?'ขยายเมนู':'ย่อเมนู'} onClick={()=>setMenuCollapsed(v=>!v)}><Menu size={20}/></button></div>
+      <header className="ds-top"><div className="ds-top-inner"><div className="ds-menu-controls"><button type="button" className="ds-menu-mobile" aria-label="เปิดเมนูด้านซ้าย" aria-expanded={menuOpen} onClick={()=>setMenuOpen(true)}><Menu size={21}/></button></div>
         <div className="ds-brand"><span className="ds-mark">นภ</span><div><strong>รายงานผลการเบิกจ่ายงบประมาณ</strong><small>จังหวัดหนองบัวลำภู · ปีงบประมาณ พ.ศ. 2570</small></div></div>
         <nav><Link href="/admin"><LockKeyhole size={15}/> เข้าสู่ระบบเจ้าหน้าที่</Link></nav>
       </div></header>
