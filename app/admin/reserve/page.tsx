@@ -3,7 +3,9 @@ import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import {AdminNavigation} from '@/components/AdminNavigation';
 import {createClient} from '@supabase/supabase-js';
-import type {MonitorActivity} from '@/lib/monitor';
+import type {MonitorActivity,MonitorEntry} from '@/lib/monitor';
+import type {MonitorPoEntry} from '@/lib/po';
+import {TransferActivityManager} from '@/components/TransferActivityManager';
 import type {ReallocationTransfer} from '@/lib/reallocation';
 import {fmt} from '@/lib/monitor';
 import './reserve-admin.css';
@@ -13,6 +15,7 @@ export default function ReserveAdmin(){
  const client=useMemo(()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;return url&&key?createClient(url,key):null},[]);
  const [session,setSession]=useState(false),[ready,setReady]=useState(false),[email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [activities,setActivities]=useState<MonitorActivity[]>([]),[transfers,setTransfers]=useState<ReallocationTransfer[]>([]);
+ const [entries,setEntries]=useState<MonitorEntry[]>([]),[poEntries,setPoEntries]=useState<MonitorPoEntry[]>([]);
  const [busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState('');
  const [target,setTarget]=useState(''),[projectName,setProjectName]=useState(''),[activityName,setActivityName]=useState(''),[agency,setAgency]=useState('');
  const [amount,setAmount]=useState(''),[date,setDate]=useState(today),[reference,setReference]=useState(''),[note,setNote]=useState('');
@@ -26,7 +29,7 @@ export default function ReserveAdmin(){
   try{
    const res=await fetch('/api/admin/monitor',{cache:'no-store',headers:{Authorization:'Bearer '+await getToken()}});
    const j=await res.json();if(!res.ok)throw Error(j.error||'ไม่สามารถโหลดข้อมูล');
-   setActivities(j.activities??[]);setTransfers(j.transfers??[]);setLoaded(true);
+   setActivities(j.activities??[]);setTransfers(j.transfers??[]);setEntries(j.entries??[]);setPoEntries(j.poEntries??[]);setLoaded(true);
   }catch(e){setError(e instanceof Error?e.message:'อ่านข้อมูลไม่สำเร็จ');}finally{setBusy(false);}
  },[getToken]);
  useEffect(()=>{if(!client){setReady(true);return;}void client.auth.getSession().then(x=>{setSession(!!x.data.session);setReady(true)});
@@ -38,6 +41,10 @@ export default function ReserveAdmin(){
  const allocated=active.reduce((v,t)=>v+Number(t.amount),0);
  const remaining=Math.round((source-allocated)*100)/100;
  const usedCodes=[...new Set(active.map(t=>t.project_code))].sort();
+ const [expandedProject,setExpandedProject]=useState('');
+ const usedActivityIds=new Set(active.map(t=>t.activity_id));
+ const transferredActivities=activities.filter(a=>usedActivityIds.has(a.id));
+ const activeByProject=[...new Set(active.map(t=>t.project_code))].sort().map(code=>({code,name:active.find(t=>t.project_code===code)?.project_name??code,allocations:active.filter(t=>t.project_code===code)}));
  async function send(payload:Record<string,unknown>){
   setBusy(true);setError('');setSuccess('');
   try{
@@ -82,10 +89,30 @@ export default function ReserveAdmin(){
         </div>
       </div>
     </div>}
-    <section className="ra-card"><h2>โครงการที่ได้รับจัดสรรจากกองเงินนี้</h2><p>การยกเลิกจะคืนงบเข้ากองเงิน โดยเก็บรายการเดิมไว้เป็นประวัติ ไม่ลบข้อมูลทิ้ง และไม่อนุญาตหากมี PO หรือเบิกจ่ายแล้ว</p>
-     <div className="ra-table-wrap"><table><thead><tr><th>โครงการ / กิจกรรม</th><th>วันที่จัดสรร</th><th>วงเงิน</th><th>เอกสารอ้างอิง</th><th>สถานะ</th></tr></thead><tbody>{transfers.length===0?<tr><td colSpan={5}>ยังไม่มีการจัดสรรจากกองเงินนี้</td></tr>:
-       transfers.map(t=><tr key={t.id}><td><strong>{t.project_code} · {t.project_name}</strong><small>{t.activity_name}</small></td><td>{thai(t.allocated_on)}</td><td>{fmt(Number(t.amount))}</td><td>{t.reference}</td><td>{t.cancelled_on?'ยกเลิก '+thai(t.cancelled_on):'มีผล'}</td></tr>)
-     }</tbody></table></div>
+    <section className="ra-card ra-projects-card"><h2>โครงการที่ได้รับจัดสรรจากกองเงินนี้</h2>
+      <p>จัดการชื่อกิจกรรมและหน่วยดำเนินการ บันทึก PO และผลเบิกจ่ายได้เหมือนโครงการหลัก โดยยังคงวงเงินที่จัดสรรและหลักฐานการโอนเดิมไว้</p>
+      {activeByProject.length===0?<p>ยังไม่มีโครงการที่ได้รับจัดสรรจากกองเงินนี้</p>:activeByProject.map(project=>{
+        const projectActivities=project.allocations.map(t=>({transfer:t,activity:transferredActivities.find(a=>a.id===t.activity_id)}));
+        const projectBudget=project.allocations.reduce((v,t)=>v+Number(t.amount),0);
+        const projectPo=projectActivities.reduce((sum,item)=>sum+poEntries.filter(p=>p.activity_id===item.activity?.id&&p.po_on<=today()).reduce((n,p)=>n+Number(p.amount),0),0);
+        const projectPaid=projectActivities.reduce((sum,item)=>sum+(Number(item.activity?.baseline_disbursed??0)+entries.filter(e=>e.activity_id===item.activity?.id&&e.paid_on<=today()).reduce((n,e)=>n+Number(e.amount),0)),0);
+        const expanded=expandedProject===project.code;
+        return <article className="ra-funded-project" key={project.code}>
+          <button type="button" className="ra-funded-project-toggle" aria-expanded={expanded} onClick={()=>setExpandedProject(expanded?'':project.code)}>
+            <span className="ra-funded-project-title"><strong>{project.code} · {project.name}</strong><small>{project.allocations.length} กิจกรรม · วงเงินจัดสรร {fmt(projectBudget)} บาท</small></span>
+            <span className="ra-funded-project-summary">PO {fmt(projectPo)} · เบิกจ่าย {fmt(projectPaid)} · คงเหลือ {fmt(projectBudget-projectPaid)} บาท <b>{expanded?'▴':'▾'}</b></span>
+          </button>
+          {expanded&&<div className="ra-funded-project-body">
+            {projectActivities.map(({transfer,activity})=><section className="ra-funded-activity" key={transfer.id}>
+              <div className="ra-funded-activity-head"><div><strong>{activity?.name??transfer.activity_name}</strong><small>หน่วยดำเนินการ: {activity?.agency||transfer.agency||'ไม่ระบุ'} · จัดสรร {thai(transfer.allocated_on)}</small><small>เอกสารอ้างอิง: {transfer.reference}</small></div><b>{fmt(Number(transfer.amount))} บาท</b></div>
+              {activity?<TransferActivityManager activity={activity} allocatedOn={transfer.allocated_on} entries={entries.filter(e=>e.activity_id===activity.id)} poEntries={poEntries.filter(p=>p.activity_id===activity.id)} getToken={getToken} onSaved={reload}/>:<p className="ra-error">ไม่พบข้อมูลกิจกรรมที่เชื่อมกับรายการจัดสรรนี้ กรุณาตรวจสอบฐานข้อมูลก่อนทำรายการ</p>}
+            </section>)}
+          </div>}
+        </article>;
+      })}
+      <div className="ra-transfer-history"><h3>ประวัติการจัดสรรเงินโอน</h3><p>ประวัติเดิมจะไม่ถูกลบ แม้ยกเลิกการจัดสรรแล้ว</p>
+        <div className="ra-table-wrap"><table><thead><tr><th>โครงการ / กิจกรรม</th><th>วันที่จัดสรร</th><th>วงเงิน</th><th>เอกสารอ้างอิง</th><th>สถานะ</th></tr></thead><tbody>{transfers.length===0?<tr><td colSpan={5}>ยังไม่มีประวัติการจัดสรร</td></tr>:transfers.map(t=><tr key={t.id}><td><strong>{t.project_code} · {t.project_name}</strong><small>{t.activity_name}</small></td><td>{thai(t.allocated_on)}</td><td>{fmt(Number(t.amount))}</td><td>{t.reference}</td><td>{t.cancelled_on?'ยกเลิก '+thai(t.cancelled_on):'มีผล'}</td></tr>)}</tbody></table></div>
+      </div>
     </section>
     {usedCodes.length>0&&<section className="ra-card"><h2>ยกเลิกการจัดสรรและคืนเงินเข้ากอง</h2><p>ต้องไม่มีรายการ PO หรือการเบิกจ่ายของโครงการนี้ ระบบจะบันทึกวันที่และเหตุผลการยกเลิกไว้ถาวร</p>
      <form onSubmit={e=>{e.preventDefault();if(!window.confirm('ยืนยันยกเลิกการจัดสรรทั้งโครงการและคืนเงินเข้ากอง?'))return;void send({action:'cancel',project_code:cancelTarget,cancelled_on:cancelDate,reason:cancelReason});}}>
