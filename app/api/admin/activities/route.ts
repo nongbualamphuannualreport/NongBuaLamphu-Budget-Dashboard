@@ -65,7 +65,7 @@ export async function POST(req:NextRequest){
       const {data:original,error:readError}=await db.from('monitor_activities').select('*').eq('id',id).maybeSingle();
       if(readError)return bad(readError.message,500);
       if(!original)return bad('ไม่พบกิจกรรมนี้',404);
-      if(original.project_code==='RESERVE')return bad('รายการเงินเหลือจ่ายเป็นหมวดคงที่ ไม่อนุญาตให้แก้ผ่านหน้ากิจกรรม',422);
+      if(original.project_code==='RESERVE')return bad('เงินคงเหลือจากการโอนเปลี่ยนแปลงเป็นหมวดคงที่ ไม่อนุญาตให้แก้ผ่านหน้ากิจกรรม',422);
       const name=requireText(p.name,500),agency=requireText(p.agency,180),budget=money(p.budget);
       if(!name||budget===null)return bad('กรุณากรอกชื่อกิจกรรมและวงเงินงบประมาณที่ถูกต้อง');
       const paid=Number(original.baseline_disbursed)+await payments(db,id);
@@ -81,7 +81,7 @@ export async function POST(req:NextRequest){
       const {data:original,error:readError}=await db.from('monitor_activities').select('*').eq('id',id).maybeSingle();
       if(readError)return bad(readError.message,500);
       if(!original)return bad('ไม่พบกิจกรรมนี้',404);
-      if(original.project_code==='RESERVE')return bad('ไม่อนุญาตให้ลบหมวดเงินเหลือจ่าย',422);
+      if(original.project_code==='RESERVE')return bad('ไม่อนุญาตให้ลบหมวดเงินคงเหลือจากการโอนเปลี่ยนแปลง',422);
       const {count,error:countError}=await db.from('monitor_entries').select('id',{count:'exact',head:true}).eq('activity_id',id);
       if(countError)return bad(countError.message,500);
       if(Number(original.baseline_disbursed)>0||(count??0)>0)return bad('กิจกรรมนี้มียอดตั้งต้นหรือประวัติการเบิกจ่ายแล้ว จึงไม่อนุญาตให้ลบ กรุณาแก้ไขข้อมูลแทน',422);

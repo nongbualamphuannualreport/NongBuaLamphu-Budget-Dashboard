@@ -155,7 +155,7 @@
     {
       "code": "RESERVE",
       "source_row": 56,
-      "name": "เงินเหลือจ่าย",
+      "name": "เงินคงเหลือจากการโอนเปลี่ยนแปลง",
       "budget": 672700.0,
       "po": 0.0,
       "disbursed_investment": 0.0,

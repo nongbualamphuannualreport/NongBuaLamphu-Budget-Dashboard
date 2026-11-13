@@ -114,7 +114,7 @@ export function ProjectHierarchy({report,search}:{report:DisbursementReport;sear
         </div>}
       </section>;
     })}
-    {reserve&&<div className="ph-reserve"><Wallet size={21}/><div><strong>รายการเงินเหลือจ่าย</strong><p>แสดงแยกจากโครงการตามบัญชีงบประมาณ โดยรวมในยอดงบประมาณทั้งสิ้น</p></div><b>{money(reserve.budget)} บาท</b></div>}
+    {reserve&&<div className="ph-reserve"><Wallet size={21}/><div><strong>เงินคงเหลือจากการโอนเปลี่ยนแปลง</strong><p>แสดงแยกจากโครงการตามบัญชีงบประมาณ โดยรวมในยอดงบประมาณทั้งสิ้น</p></div><b>{money(reserve.budget)} บาท</b></div>}
     <p className="ph-provenance">รายละเอียดค่าใช้จ่ายอ้างอิงตามบัญชีหน่วยดำเนินการ ณ 10 พฤศจิกายน 2569 โดยไม่นับซ้ำกับยอดงบประมาณรายโครงการ</p>
   </div>;
 }

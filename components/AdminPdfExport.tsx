@@ -200,7 +200,7 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
           if(item.kind==='project')return <section className="apdf-project-line" key={'project-'+item.project.code}>
             <div className="apdf-detail-main">
               <span className="apdf-project-index">{String(item.ordinal).padStart(2,'0')}</span>
-              <strong>{item.project.code==='RESERVE'?'รายการเงินเหลือจ่าย':item.project.name}</strong>
+              <strong>{item.project.code==='RESERVE'?'เงินคงเหลือจากการโอนเปลี่ยนแปลง':item.project.name}</strong>
             </div>
             <div className="apdf-detail-figures">
               <b>{fmt(item.project.budget)}</b>
