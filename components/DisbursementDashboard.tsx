@@ -49,10 +49,10 @@ export function DisbursementDashboard(){
   const extraProjects=report?.projects.filter(p=>p.code!=='RESERVE'&&!/^P(0[1-9]|10)$/.test(String(p.code))).length??0;
   const active=report?.projects.filter(p=>/^P(0[1-9]|10)$/.test(String(p.code))&&p.disbursed>0).length??0;
 
-  function csv(){
+  function csv(kind:'projects'|'activities'|'extras'='activities'){
     if(!report)return;
     const rows=[['ประเภท','โครงการ/กิจกรรม','หน่วยงาน','งบประมาณ','PO','เบิกจ่าย','คงเหลือ','ร้อยละ'],
-      ...((view==='projects'||view==='extras')?report.projects:report.activities).map(x=>[(view==='projects'||view==='extras')?'โครงการ':'กิจกรรม',x.name??x.activity??'',x.agency??'',x.budget,x.po,x.disbursed,x.remaining,percentTH(x.disbursed,x.budget)])];
+      ...(kind==='projects'?report.projects.filter(p=>/^P(0[1-9]|10)$/.test(String(p.code))):kind==='extras'?report.projects.filter(p=>p.code!=='RESERVE'&&!/^P(0[1-9]|10)$/.test(String(p.code))):report.activities).map(x=>[kind==='activities'?'กิจกรรม':'โครงการ',x.name??x.activity??'',x.agency??'',x.budget,x.po,x.disbursed,x.remaining,percentTH(x.disbursed,x.budget)])];
     const esc=(v:unknown)=>{const s=String(v??'');return '"'+(/^[=+@\-\t\r]/.test(s)?"'"+s:s).replace(/"/g,'""')+'"';};
     const content='\uFEFF'+rows.map(row=>row.map(esc).join(',')).join('\r\n');
     const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));
@@ -91,7 +91,7 @@ export function DisbursementDashboard(){
             {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
             <button className="ds-icon-btn" onClick={()=>{setDate('');setReload(v=>v+1);}} title="รีเฟรชข้อมูลล่าสุด"><RefreshCw size={15}/> แสดงข้อมูลล่าสุด</button></div>
           <div className="ds-export-controls">
-            <button type="button" onClick={csv} disabled={!report}><FileSpreadsheet size={17}/> ส่งออกข้อมูล CSV</button>
+            <button type="button" onClick={()=>csv(view==='projects'?'projects':view==='extras'?'extras':'activities')} disabled={!report}><FileSpreadsheet size={17}/> ส่งออกข้อมูล CSV</button>
 
           </div>
         </div>
@@ -119,7 +119,7 @@ export function DisbursementDashboard(){
             {view==='projects'?<ProjectHierarchy report={report} search={search} mode="core"/>:view==='extras'?<ProjectHierarchy report={report} search={search} mode="extras"/>:<div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>PO (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-po">{moneyTH(p.po)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>}
             <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
           </section>}
-          {view==='reports'&&<section className="ds-panel"><h2>ดาวน์โหลดรายงานผลการเบิกจ่าย</h2><p>ข้อมูล ณ {thaiDate(report.as_of_date)} · เลือกส่งออกตามประเภทข้อมูล</p><div className="ds-report-actions"><button type="button" onClick={()=>{setView('projects');csv();}}>ดาวน์โหลดรายโครงการ CSV</button><button type="button" onClick={()=>{setView('activities');csv();}}>ดาวน์โหลดรายกิจกรรม CSV</button><Link href="/reserve">ดูรายงานเงินโอนเปลี่ยนแปลง</Link></div></section>}
+          {view==='reports'&&<section className="ds-panel"><h2>ดาวน์โหลดรายงานผลการเบิกจ่าย</h2><p>ข้อมูล ณ {thaiDate(report.as_of_date)} · เลือกส่งออกตามประเภทข้อมูล</p><div className="ds-report-actions"><button type="button" onClick={()=>csv('projects')}>ดาวน์โหลดรายโครงการ CSV</button><button type="button" onClick={()=>csv('activities')}>ดาวน์โหลดรายกิจกรรม CSV</button><Link href="/reserve">ดูรายงานเงินโอนเปลี่ยนแปลง</Link></div></section>}
         </>}
         <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>ข้อมูลจำแนกตามโครงการและกิจกรรม</span></footer>
       </div>
