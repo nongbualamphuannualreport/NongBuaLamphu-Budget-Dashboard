@@ -115,3 +115,57 @@
   .ra-admin-main .ra-kpis>div{padding:13px 16px}
   .ra-admin-main .ra-kpis strong{font-size:25px}
 }
+
+
+/* Transferred projects: activity-level accounting UI, shared visual language with core projects */
+.ra-funded-project{border:1px solid #dce8df;border-radius:13px;margin:13px 0;background:#fff;overflow:hidden}
+.ra-shell .ra-funded-project-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fbfdfb;color:#244b3b;width:100%;text-align:left;border:0;border-radius:0;padding:17px 19px;min-height:68px}
+.ra-shell .ra-funded-project-toggle:hover{background:#eef7f1}
+.ra-funded-project-title{display:block;flex:1;min-width:0}
+.ra-funded-project-title strong{display:block;font-size:16px;line-height:1.55;overflow-wrap:anywhere}
+.ra-funded-project-title small,.ra-funded-project-summary{display:block;color:#71857d;font-size:12px;line-height:1.6}
+.ra-funded-project-summary{text-align:right;flex:0 1 43%;font-variant-numeric:tabular-nums}
+.ra-funded-project-summary b{font-size:17px;color:#176c50;margin-left:8px}
+.ra-funded-project-body{padding:16px 18px;background:#f7faf8;border-top:1px solid #e0eae3}
+.ra-funded-activity{border:1px solid #e0e8e1;background:#fff;border-radius:12px;padding:17px 18px;margin-bottom:13px;min-width:0}
+.ra-funded-activity:last-child{margin-bottom:0}
+.ra-funded-activity-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:13px}
+.ra-funded-activity-head>div{min-width:0}
+.ra-funded-activity-head strong,.ra-funded-activity-head small{display:block}
+.ra-funded-activity-head strong{font-size:15px;color:#1c4c3c;line-height:1.55;overflow-wrap:anywhere}
+.ra-funded-activity-head small{font-size:12px;color:#73877d;line-height:1.6;margin-top:3px;overflow-wrap:anywhere}
+.ra-funded-activity-head>b{font-size:17px;color:#265767;flex:none;white-space:nowrap}
+.ra-activity-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:14px}
+.ra-activity-totals span{border:1px solid #e0e8e2;border-radius:9px;background:#f8faf8;padding:10px 12px;min-width:0}
+.ra-activity-totals small{display:block;font-size:11px;color:#788c85}
+.ra-activity-totals b{display:block;font-size:17px;color:#284f46;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.ra-activity-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ra-shell .ra-activity-actions button,.ra-activity-history button{min-height:37px;padding:8px 11px;font-size:12px;border-radius:8px}
+.ra-shell .ra-action-light{background:white;color:#23614d;border:1px solid #cddfd3}
+.ra-shell .ra-action-light:hover:not(:disabled){background:#eef6f1}
+.ra-activity-history{border-top:1px solid #e2ebe4;padding-top:13px;margin-top:16px}
+.ra-activity-history h4,.ra-transfer-history h3{font-size:15px;color:#274f41;margin:16px 0 7px}
+.ra-activity-history p,.ra-transfer-history p{font-size:12px;color:#73877d}
+.ra-transfer-history{margin-top:25px;padding-top:12px;border-top:1px solid #e1eae3}
+.ra-modal-body .ra-form-note{margin:1px 0 0;padding:10px 12px;background:#f1f7f3;border-radius:9px;font-size:13px;color:#557469;line-height:1.55}
+.ra-modal-footer{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:15px;border-top:1px solid #e2ebe4}
+.ra-shell .ra-modal-footer button{min-width:130px}
+@media(max-width:1200px){
+ .ra-activity-totals{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ra-funded-project-toggle{flex-wrap:wrap}
+ .ra-funded-project-summary{flex:1 1 100%;text-align:left}
+}
+@media(max-width:760px){
+ .ra-funded-project-body{padding:11px}
+ .ra-funded-activity{padding:13px}
+ .ra-funded-project-title strong{font-size:15px}
+ .ra-funded-activity-head{flex-wrap:wrap;gap:7px}
+ .ra-funded-activity-head>b{font-size:16px}
+ .ra-activity-actions button{flex:1 1 110px}
+ .ra-activity-totals b{font-size:16px}
+ .ra-shell .ra-modal-footer button{flex:1}
+}
+@media(max-width:400px){
+ .ra-activity-totals span{padding:8px}
+ .ra-activity-totals b{font-size:14px}
+}
