@@ -1,10 +1,11 @@
 'use client';
 
 import {useMemo,useRef,useState} from 'react';
+import {flushSync} from 'react-dom';
 import type {MonitorActivity,MonitorPeriod} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
 import './admin-pdf-export.css';
-import {paginatePdfProjectDetails} from '@/lib/pdf-project-pages';
+import {paginatePdfProjectDetails,paginateMeasuredPdfDetails,type PdfDetailItem} from '@/lib/pdf-project-pages';
 
 type Row=MonitorActivity & {cumulative:number;period:number;remaining:number};
 type Report={
@@ -36,6 +37,7 @@ export function AdminPdfExport({report,mode,enabled}:Props){
  const sheets=useRef<HTMLDivElement>(null);
  const [generating,setGenerating]=useState<'summary'|'full'|null>(null);
  const [status,setStatus]=useState('');
+ const [measuredLayout,setMeasuredLayout]=useState<{key:string;pages:PdfDetailItem[][]}|null>(null);
  const projects=useMemo<Project[]>(()=>{
   const map=new Map<string,Project>();
   for(const r of report.rows){
@@ -49,10 +51,14 @@ export function AdminPdfExport({report,mode,enabled}:Props){
  const activities=report.rows.filter(r=>r.project_code!=='RESERVE');
  const started=reportProjects.filter(p=>p.paid>0);
  const pct=report.total.budget?Math.max(0,Math.min(100,report.total.disbursed/report.total.budget*100)):0;
- const detailPages=paginatePdfProjectDetails(projects,activities.map(a=>({
+ const layoutKey=report.asOf+'|'+report.rows.map(r=>
+  [r.id,r.project_code,r.project_name,r.name,r.agency,r.budget,r.cumulative,r.remaining].join(':')
+ ).join('|');
+ const defaultPages=paginatePdfProjectDetails(projects,activities.map(a=>({
   id:a.id,project_code:a.project_code,name:a.name,agency:a.agency,
   budget:a.budget,cumulative:a.cumulative,remaining:a.remaining
  })));
+ const detailPages=measuredLayout?.key===layoutKey?measuredLayout.pages:defaultPages;
  const totalPages=1+detailPages.length;
  const periodLabel=mode==='daily'?'รายวัน':mode==='monthly'?'รายเดือน':'รายปีงบประมาณ';
 
@@ -65,6 +71,34 @@ export function AdminPdfExport({report,mode,enabled}:Props){
    await document.fonts.load('400 16px NotoThai');
    await document.fonts.load('700 16px NotoThai');
    await document.fonts.ready;
+   // Repack only at export time, after the real Thai fonts have loaded and
+   // the browser has measured the actual item heights. Character-count
+   // estimates left half of many pages blank in the old 9-page PDF.
+   if(kind==='full'){
+    const currentPages=Array.from(root.querySelectorAll<HTMLElement>('.apdf-page'));
+    const firstDetail=currentPages[1];
+    const body=firstDetail?.querySelector<HTMLElement>('.apdf-paper-body');
+    const heading=firstDetail?.querySelector<HTMLElement>('.apdf-detail-intro');
+    const cols=firstDetail?.querySelector<HTMLElement>('.apdf-detail-columns');
+    const total=root.querySelector<HTMLElement>('.apdf-detail-grand-total');
+    const rowElements=Array.from(root.querySelectorAll<HTMLElement>('.apdf-project-line, .apdf-subactivity-line'));
+    const items=detailPages.flat();
+    if(!body||!heading||!cols||!total||rowElements.length!==items.length)
+     throw new Error('ไม่สามารถวัดพื้นที่รายงานได้ครบถ้วน');
+    const outerHeight=(el:HTMLElement)=>{
+     const style=getComputedStyle(el);
+     return el.getBoundingClientRect().height+
+      (parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0);
+    };
+    const reserved=outerHeight(total)+26; // leave a safety gap above the page footer
+    const paperHeight=body.getBoundingClientRect().height;
+    const firstCapacity=paperHeight-outerHeight(heading)-outerHeight(cols)-reserved;
+    const laterCapacity=paperHeight-reserved;
+    const measured=paginateMeasuredPdfDetails(items,rowElements.map(outerHeight),firstCapacity,laterCapacity);
+    // Commit pages synchronously before capturing; each PDF page must fit the
+    // fixed A4 area, with no text sliced off at the bottom.
+    flushSync(()=>{setMeasuredLayout({key:layoutKey,pages:measured});setGenerating(kind)});
+   }
    const [{default:html2canvas},{jsPDF}]=await Promise.all([import('html2canvas-pro'),import('jspdf')]);
    const nodes=Array.from(root.querySelectorAll<HTMLElement>('.apdf-page'));
    const selected=kind==='summary'?nodes.slice(0,1):nodes;
