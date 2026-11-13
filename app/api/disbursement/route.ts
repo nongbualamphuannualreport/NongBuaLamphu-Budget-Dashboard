@@ -7,6 +7,7 @@ export async function GET(req:NextRequest){
   const result=await getPublicReport(cutoff);
   return NextResponse.json(result,{headers:{'Cache-Control':'no-store, max-age=0'}});
  }catch(err){
-  return NextResponse.json({error:err instanceof Error?err.message:'ไม่สามารถโหลดข้อมูลผลการเบิกจ่ายได้'},{status:500,headers:{'Cache-Control':'no-store'}});
+  console.error('Public report retrieval failed',err);
+  return NextResponse.json({error:'ไม่สามารถแสดงข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง'},{status:500,headers:{'Cache-Control':'no-store'}});
  }
 }
