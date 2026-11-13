@@ -16,3 +16,38 @@
 .rv-project b{text-align:right;white-space:nowrap;color:#20664d}
 .rv-note{padding:13px;border-radius:9px;background:#f3f6f4;color:#537269;font-size:13px;line-height:1.65}
 @media(max-width:650px){.rv-wrap{padding:16px 12px 40px}.rv-top{flex-direction:column}.rv-summary{grid-template-columns:1fr}.rv-summary article{padding:12px 16px}.rv-summary strong{font-size:23px}.rv-card{padding:16px}.rv-project{display:block}.rv-project b{display:block;text-align:left;margin-top:8px}}
+
+
+/* Unified public reporting design — matches the main FY2570 dashboard. */
+.ds-shell-main .rv-wrap{max-width:none;width:100%;margin:0;padding:0 0 32px;color:#213b4a;font-family:inherit;line-height:1.65}
+.ds-shell-main .rv-top{padding:27px 29px;border-radius:17px;background:linear-gradient(115deg,#1b2c46 0%,#233c59 72%,#31526b 100%);color:#fff;align-items:center;gap:24px;margin-bottom:20px;box-shadow:0 12px 26px #1b324213}
+.ds-shell-main .rv-top h1{margin:7px 0 6px;font-size:clamp(22px,2.6vw,31px);line-height:1.45;color:#fff}
+.ds-shell-main .rv-top p{margin:0;color:#d5e2e9;font-size:14px}
+.ds-shell-main .rv-top a{color:#f1c7a7;font-weight:700;font-size:13px}
+.ds-shell-main .rv-top>a{display:inline-flex;align-items:center;justify-content:center;flex:none;border:1px solid #ffffff58;border-radius:9px;color:#fff;padding:10px 14px;min-height:42px;white-space:nowrap}
+.ds-shell-main .rv-top>a:hover{background:#ffffff19}
+.ds-shell-main .rv-summary{gap:15px}
+.ds-shell-main .rv-summary article{border-color:#e6e5e2;border-radius:14px;padding:22px 23px;box-shadow:0 4px 16px #283e4308}
+.ds-shell-main .rv-summary article:last-child{background:#edf7f1;border-color:#c6dfd1}
+.ds-shell-main .rv-summary article span{font-size:14px;color:#70838d}
+.ds-shell-main .rv-summary article strong{font-variant-numeric:tabular-nums;letter-spacing:-.5px;font-size:clamp(24px,2.7vw,32px)}
+.ds-shell-main .rv-card{margin-top:17px;border-color:#e6e5e2;border-radius:15px;padding:25px;box-shadow:0 3px 14px #253b3e05}
+.ds-shell-main .rv-card h2{font-size:clamp(19px,2vw,24px);color:#22394a}
+.ds-shell-main .rv-card>p{font-size:14px;margin:6px 0 12px}
+.ds-shell-main .rv-project{gap:16px;align-items:center;border-bottom-color:#e9efec}
+.ds-shell-main .rv-project:last-child{border-bottom:0}
+.ds-shell-main .rv-project strong{font-size:15px;color:#223d4b}
+.ds-shell-main .rv-project small{font-size:13px}
+.ds-shell-main .rv-project>b{font-size:17px;flex:none;font-variant-numeric:tabular-nums}
+.ds-shell-main .rv-note{margin-top:17px;background:#eef3ef;border:1px solid #e0e9e3;color:#607970}
+@media(max-width:760px){
+ .ds-shell-main .rv-top{padding:20px 18px;flex-direction:column;align-items:flex-start}
+ .ds-shell-main .rv-top h1{font-size:23px}
+ .ds-shell-main .rv-top p{font-size:13px}
+ .ds-shell-main .rv-summary{grid-template-columns:1fr;gap:10px}
+ .ds-shell-main .rv-summary article{padding:15px 18px}
+ .ds-shell-main .rv-summary article strong{font-size:26px;margin-top:4px}
+ .ds-shell-main .rv-card{padding:17px}
+ .ds-shell-main .rv-project{display:block}
+ .ds-shell-main .rv-project>b{display:block;text-align:left;margin-top:10px}
+}
