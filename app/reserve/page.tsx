@@ -4,6 +4,7 @@ import {isConfigured,serverDb} from '@/lib/supabase';
 import type {ReallocationTransfer} from '@/lib/reallocation';
 import {fmt} from '@/lib/monitor';
 import './reserve.css';
+import {PublicReserveShell} from '@/components/PublicReserveShell';
 export const dynamic='force-dynamic';
 const thai=(s:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(s+'T12:00:00+07:00'));
 export default async function ReservePublicPage(){
@@ -29,7 +30,7 @@ export default async function ReservePublicPage(){
   po:report?.projects.find(p=>p.code===code)?.po??0,
   details:active.filter(t=>t.project_code===code)
  }));
- return <main className="rv-wrap">
+ return <PublicReserveShell><div className="rv-wrap">
   <header className="rv-top"><div><Link href="/">← กลับ Dashboard หลัก</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1>
   <p>รายงานกองเงินเพื่อจัดสรรโครงการใหม่ · จังหวัดหนองบัวลำภู ปีงบประมาณ พ.ศ. 2570</p></div><Link href="/admin/reserve">สำหรับเจ้าหน้าที่</Link></header>
   {error&&<p role="alert">{error}</p>}
@@ -47,5 +48,5 @@ export default async function ReservePublicPage(){
     )}
   </section>
   <p className="rv-note">การจัดสรรเงินจากกองเงินนี้เป็นการย้ายวงเงินไปยังโครงการใหม่ ไม่ใช่งบประมาณที่ได้รับเพิ่ม จึงไม่บวกซ้ำกับยอดงบประมาณจังหวัด · ข้อมูล ณ {thai(asOf)}</p>
- </main>;
+ </div></PublicReserveShell>;
 }
