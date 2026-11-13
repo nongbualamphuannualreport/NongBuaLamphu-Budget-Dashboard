@@ -31,15 +31,15 @@ export default async function ReservePublicPage(){
   details:active.filter(t=>t.project_code===code)
  }));
  return <PublicReserveShell><div className="rv-wrap">
-  <header className="rv-top"><div><Link href="/">← กลับ Dashboard หลัก</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1>
-  <p>รายงานกองเงินเพื่อจัดสรรโครงการใหม่ · จังหวัดหนองบัวลำภู ปีงบประมาณ พ.ศ. 2570</p></div><Link href="/admin/reserve">สำหรับเจ้าหน้าที่</Link></header>
+  <header className="rv-top"><div><Link href="/">← กลับหน้าภาพรวมงบประมาณ</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1>
+  <p>ข้อมูลการจัดสรรเงินและโครงการเพิ่มเติม · จังหวัดหนองบัวลำภู ปีงบประมาณ พ.ศ. 2570</p></div><Link href="/admin/reserve">สำหรับเจ้าหน้าที่</Link></header>
   {error&&<p role="alert">{error}</p>}
   <section className="rv-summary" aria-label="สถานะเงินโอนเปลี่ยนแปลง">
    <article><span>วงเงินกองเงินเริ่มต้น</span><strong>{fmt(initial)}</strong><small>บาท</small></article>
    <article><span>จัดสรรไปยังโครงการแล้ว</span><strong>{fmt(allocated)}</strong><small>บาท</small></article>
    <article><span>ยังไม่จัดสรร</span><strong>{fmt(remaining)}</strong><small>บาท</small></article>
   </section>
-  <section className="rv-card"><h2>โครงการที่ได้รับจัดสรรจากกองเงินนี้</h2><p>แยกจาก 10 โครงการหลักตามแผนเดิม · แสดง PO และการเบิกจ่ายจริงของโครงการที่ได้รับโอน</p>
+  <section className="rv-card"><h2>โครงการที่ได้รับจัดสรรจากกองเงินนี้</h2><p>รายละเอียดงบประมาณและผลเบิกจ่ายของแต่ละโครงการ</p>
     {grouped.length===0?<p>ยังไม่มีรายการจัดสรรโครงการจากกองเงินนี้</p>:grouped.map(p=>
      <div className="rv-project" key={p.code}><div><strong>{p.code} · {p.name}</strong>
        {p.details.map(t=><small key={t.id}>{t.activity_name} · จัดสรร {thai(t.allocated_on)} · เลขที่เอกสาร {t.reference}</small>)}
@@ -47,6 +47,6 @@ export default async function ReservePublicPage(){
       </div><b>{fmt(p.budget)} บาท</b></div>
     )}
   </section>
-  <p className="rv-note">การจัดสรรเงินจากกองเงินนี้เป็นการย้ายวงเงินไปยังโครงการใหม่ ไม่ใช่งบประมาณที่ได้รับเพิ่ม จึงไม่บวกซ้ำกับยอดงบประมาณจังหวัด · ข้อมูล ณ {thai(asOf)}</p>
+  <p className="rv-note">ยอดเงินที่จัดสรรให้โครงการแล้วรวมอยู่ในงบประมาณจังหวัด ไม่ใช่งบประมาณเพิ่มเติม · ข้อมูล ณ {thai(asOf)}</p>
  </div></PublicReserveShell>;
 }
