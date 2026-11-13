@@ -144,14 +144,8 @@ export function MonitorAdmin(){
   {(section==='projects'||section==='po'||section==='disbursements')&&<>
     {section==='po'&&<div className="mon-menu-instructions mon-noprint"><strong>จัดการ PO / ยอดผูกพัน</strong><p>เปิดโครงการและกิจกรรมที่ต้องการ เพื่อบันทึก PO ลด PO หรือจ่ายจาก PO</p></div>}
     {section==='disbursements'&&<div className="mon-menu-instructions mon-noprint"><strong>บันทึกเบิกจ่าย</strong><p>เลือกกิจกรรมเพื่อบันทึกยอดเบิกจ่ายจริง หรือลดยอดเมื่อมีเงินส่งคืน</p><button type="button" onClick={()=>openNew('')}>+ บันทึกเบิกจ่ายใหม่</button></div>}
-    <section className="mon-box" id="monitor-activities"><div className="mon-justify"><div><h2>{section==='po'?'เลือกกิจกรรมสำหรับบันทึก PO':section==='disbursements'?'เลือกกิจกรรมสำหรับบันทึกเบิกจ่าย':'ข้อมูลโครงการและกิจกรรมย่อย'}</h2><p>{section==='projects'?'ตรวจสอบและปรับปรุงชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารอนุมัติ':'เปิดโครงการที่ต้องการ แล้วใช้ปุ่มในแถวกิจกรรมย่อย'}</p></div><div className="mon-master-actions mon-noprint">{section==='projects'&&<><button onClick={()=>createMaster()}>+ เพิ่มกิจกรรมในโครงการเดิม</button><Link href="/admin/reserve" className="mon-admin-reserve-btn">+ สร้างโครงการจากเงินโอน</Link></>}<input className="mon-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></div></div>
+    <section className="mon-box" id="monitor-activities"><div className="mon-justify"><div><h2>{section==='po'?'เลือกกิจกรรมสำหรับบันทึก PO':section==='disbursements'?'เลือกกิจกรรมสำหรับบันทึกเบิกจ่าย':'ข้อมูลโครงการและกิจกรรมย่อย'}</h2><p>{section==='projects'?'ตรวจสอบและปรับปรุงชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารอนุมัติ':'เปิดโครงการที่ต้องการ แล้วใช้ปุ่มในแถวกิจกรรมย่อย'}</p></div><div className="mon-master-actions mon-noprint">{section==='projects'&&<><button onClick={()=>createMaster()}>+ เพิ่มกิจกรรมในโครงการเดิม</button></>}<input className="mon-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></div></div>
     <p className="mon-muted">วงเงินรวมปัจจุบัน {fmt(budgetTotal)} บาท (หักเงินที่จัดสรรจากกองเงินเพื่อป้องกันนับซ้ำ) · กรุณาตรวจสอบรายการเปลี่ยนแปลงวงเงินให้ตรงกับเอกสารอนุมัติ</p>
-    {section==='projects'&&<div className="mon-reserve-link mon-noprint">
-      <div><strong>กองเงินคงเหลือจากการโอนเปลี่ยนแปลง</strong>
-        <p>ยอดยังไม่จัดสรร {fmt(reserveLeft)} บาท · จัดสรรแล้ว {fmt(reserveAllocated)} บาท · {reserveCount} รายการ</p>
-        <small>แยกจากโครงการหลัก 10 โครงการ และโครงการเพิ่มเติมเดิม</small>
-      </div><Link href="/admin/reserve">เปิดหน้าจัดสรรและสร้างโครงการจากเงินโอน →</Link>
-    </div>}
     {filtered.map(code=>{const group=report.rows.filter(a=>a.project_code===code);const summary={budget:group.reduce((s,a)=>s+a.budget,0),paid:group.reduce((s,a)=>s+a.cumulative,0),po:group.reduce((s,a)=>s+a.po,0),period:group.reduce((s,a)=>s+a.period,0)};
       const major=hierarchyMetadata.groups.filter(h=>h.projectCode===code);
       const childRows=new Set(major.flatMap(h=>h.children));
