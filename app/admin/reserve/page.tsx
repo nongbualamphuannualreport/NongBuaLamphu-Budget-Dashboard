@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
+import {AdminNavigation} from '@/components/AdminNavigation';
 import {createClient} from '@supabase/supabase-js';
 import type {MonitorActivity} from '@/lib/monitor';
 import type {ReallocationTransfer} from '@/lib/reallocation';
@@ -45,6 +46,9 @@ export default function ReserveAdmin(){
  }
  return <main className="ra-shell">
   <header className="ra-head"><div><Link href="/admin">← กลับหลังบ้าน</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1><p>กองเงินแยก · ปีงบประมาณ พ.ศ. 2570 · สร้างโครงการเพิ่มเติมจากยอดที่ได้รับอนุมัติให้โอน</p></div><Link href="/reserve">ดูรายงานสาธารณะ</Link></header>
+  <div className="ra-admin-layout">
+    {session&&<AdminNavigation active="reserve"/>}
+    <div className="ra-admin-main">
   {!ready?<p>กำลังตรวจสอบสิทธิ์...</p>:!session?<section className="ra-card"><h2>เข้าสู่ระบบเจ้าหน้าที่</h2><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');try{if(!client)throw Error('Supabase ยังไม่พร้อม');const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;}catch(e){setError(e instanceof Error?e.message:'เข้าสู่ระบบไม่สำเร็จ');}finally{setBusy(false);}}}><label>อีเมล<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>รหัสผ่าน<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={busy}>เข้าสู่ระบบ</button></form></section>:
   <>
    {error&&<p className="ra-error" role="alert">{error}</p>}{success&&<p className="ra-success" role="status">{success}</p>}
@@ -78,5 +82,7 @@ export default function ReserveAdmin(){
     </section>}
    </>}
   </>}
+    </div>
+  </div>
  </main>;
 }

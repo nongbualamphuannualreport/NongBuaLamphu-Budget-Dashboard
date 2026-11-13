@@ -24,3 +24,10 @@
 .ra-table-wrap th,.ra-table-wrap td{padding:13px 10px;text-align:left;border-bottom:1px solid #e2ebe8;vertical-align:top}
 .ra-table-wrap th{background:#eff5f1}.ra-table-wrap td small{display:block;color:#78908a;margin-top:3px}
 @media(max-width:740px){.ra-shell{padding:16px 12px 32px}.ra-head{flex-direction:column}.ra-kpis{grid-template-columns:1fr;gap:9px}.ra-kpis>div{padding:13px 16px}.ra-kpis strong{font-size:24px}.ra-card{padding:16px}.ra-form{grid-template-columns:1fr}.ra-wide{grid-column:1}}
+
+.ra-admin-layout{display:grid;grid-template-columns:252px minmax(0,1fr);gap:20px;align-items:start}
+.ra-admin-main{min-width:0}
+.ra-admin-main .ra-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1200px){.ra-admin-layout{grid-template-columns:230px minmax(0,1fr);gap:14px}}
+@media(max-width:1000px){.ra-admin-layout{grid-template-columns:1fr}.ra-admin-main .ra-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.ra-admin-main .ra-kpis{grid-template-columns:1fr}}
