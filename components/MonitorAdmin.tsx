@@ -6,6 +6,7 @@ import {bounds,fmt,reportRows,type MonitorActivity,type MonitorEntry,type Monito
 import hierarchyMetadata from '@/data/hierarchy-metadata.json';
 import {AdminPdfExport} from './AdminPdfExport';
 import type {MonitorPoEntry} from '@/lib/po';
+import {effectiveActivities,type ReallocationTransfer} from '@/lib/reallocation';
 import './monitor.css';
 const today=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));return `${p.year}-${p.month}-${p.day}`;};
 function thai(d:string){return new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(d+'T12:00:00+07:00'));}
@@ -37,7 +38,7 @@ export function MonitorAdmin(){
  const client=useMemo(()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;return url&&key?createClient(url,key):null;},[]);
  const [session,setSession]=useState<string|null>(null),[ready,setReady]=useState(false),[loadedOnce,setLoadedOnce]=useState(false);
  const [loginEmail,setLoginEmail]=useState(''),[loginPass,setLoginPass]=useState('');
- const [activities,setActivities]=useState<MonitorActivity[]>([]),[entries,setEntries]=useState<MonitorEntry[]>([]),[poEntries,setPoEntries]=useState<MonitorPoEntry[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[truncated,setTruncated]=useState(false);
+ const [activities,setActivities]=useState<MonitorActivity[]>([]),[entries,setEntries]=useState<MonitorEntry[]>([]),[poEntries,setPoEntries]=useState<MonitorPoEntry[]>([]),[transfers,setTransfers]=useState<ReallocationTransfer[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[truncated,setTruncated]=useState(false);
  const [mode,setMode]=useState<MonitorPeriod>('daily'),[date,setDate]=useState(today),[search,setSearch]=useState(''),[selected,setSelected]=useState('');
  const [entryId,setEntryId]=useState(''),[activityId,setActivityId]=useState(''),[amount,setAmount]=useState(''),[paidOn,setPaidOn]=useState(today),[reference,setReference]=useState(''),[note,setNote]=useState('');
  const [entryVisible,setEntryVisible]=useState(false),[entryKind,setEntryKind]=useState<'disbursement'|'reduction'>('disbursement'),[modalError,setModalError]=useState('');
@@ -46,15 +47,19 @@ export function MonitorAdmin(){
  const [poVisible,setPoVisible]=useState(false),[poActivityId,setPoActivityId]=useState(''),[poKind,setPoKind]=useState<'add'|'release'|'pay'>('add');
  const [poDate,setPoDate]=useState(today),[poAmount,setPoAmount]=useState(''),[poReference,setPoReference]=useState(''),[poNote,setPoNote]=useState('');
  const getToken=useCallback(async()=>{if(!client)throw Error('ยังไม่ได้เชื่อม Supabase');const {data}=await client.auth.getSession();if(!data.session)throw Error('กรุณาเข้าสู่ระบบใหม่');return data.session.access_token;},[client]);
- const refresh=useCallback(async()=>{setBusy(true);setError('');try{const token=await getToken();const res=await fetch('/api/admin/monitor',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const json=await res.json();if(!res.ok)throw Error(json.error||'ไม่สามารถอ่านข้อมูลได้');setActivities(json.activities);setEntries(json.entries);setPoEntries(json.poEntries??[]);setLoadedOnce(true);setTruncated(!!json.truncated);}catch(e){setError(e instanceof Error?e.message:'อ่านข้อมูลไม่สำเร็จ');}finally{setBusy(false);}},[getToken]);
+ const refresh=useCallback(async()=>{setBusy(true);setError('');try{const token=await getToken();const res=await fetch('/api/admin/monitor',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const json=await res.json();if(!res.ok)throw Error(json.error||'ไม่สามารถอ่านข้อมูลได้');setActivities(json.activities);setEntries(json.entries);setPoEntries(json.poEntries??[]);setTransfers(json.transfers??[]);setLoadedOnce(true);setTruncated(!!json.truncated);}catch(e){setError(e instanceof Error?e.message:'อ่านข้อมูลไม่สำเร็จ');}finally{setBusy(false);}},[getToken]);
  useEffect(()=>{if(!client){setReady(true);return;}client.auth.getSession().then(({data})=>{setSession(data.session?.access_token??null);setReady(true);});const {data:{subscription}}=client.auth.onAuthStateChange((_e,s)=>setSession(s?.access_token??null));return()=>subscription.unsubscribe();},[client]);
  useEffect(()=>{if(session)void refresh();},[Boolean(session),refresh]);
- const report=useMemo(()=>reportRows(activities,entries,mode,date,poEntries),[activities,entries,poEntries,mode,date]);
+ const report=useMemo(()=>reportRows(effectiveActivities(activities,transfers,date),
+  entries,mode,date,poEntries),[activities,transfers,entries,poEntries,mode,date]);
  const projectCodes=useMemo(()=>[...new Set(report.rows.map(a=>a.project_code))],[report]);
  const filtered=projectCodes.filter(p=>report.rows.some(a=>a.project_code===p&&(a.project_name+a.name+a.agency).toLowerCase().includes(search.toLowerCase())));
  const history=[...new Set(entries.map(e=>e.paid_on))].sort().reverse();
  const baseline='2026-11-10';
- const budgetTotal=activities.reduce((sum,a)=>sum+Number(a.budget),0);
+ const budgetTotal=report.total.budget;
+ const reserveCount=transfers.filter(t=>t.allocated_on<=date&&(!t.cancelled_on||t.cancelled_on>date)).length;
+ const reserveAllocated=transfers.filter(t=>t.allocated_on<=date&&(!t.cancelled_on||t.cancelled_on>date)).reduce((sum,t)=>sum+Number(t.amount),0);
+ const reserveLeft=Number(activities.find(a=>a.project_code==='RESERVE')?.budget??0)-reserveAllocated;
  const masterCurrent=activities.find(a=>a.id===masterId);
  function editMaster(a:MonitorActivity){
    setMasterVisible(true);setMasterNew(false);setMasterId(a.id);setMasterProject(a.project_code);setMasterProjectName(a.project_name);
@@ -118,11 +123,17 @@ export function MonitorAdmin(){
   </nav>
   <section className="mon-box mon-filters" id="monitor-overview"><div><h2>รายงานผลการเบิกจ่าย</h2><p>เลือกช่วงเวลารายงาน โดยระบบแสดงยอดเบิกจ่ายสะสมถึงวันที่อ้างอิง</p></div><div className="mon-controls"><div className="mon-tabs">{(['daily','monthly','yearly'] as const).map(m=><button key={m} aria-pressed={mode===m} className={mode===m?'active':''} onClick={()=>setMode(m)}>{m==='daily'?'รายวัน':m==='monthly'?'รายเดือน':'รายปี'}</button>)}</div><label>วันที่อ้างอิง <input type="date" value={date} min="2026-11-10" max="2027-09-30" onChange={e=>setDate(e.target.value)}/></label></div></section>
   <div className="mon-print-title"><h2>รายงานผลการเบิกจ่ายงบประมาณจังหวัดหนองบัวลำภู ประจำปีงบประมาณ พ.ศ. 2570</h2><p>ข้อมูล ณ {thai(report.asOf)} · รายงาน{mode==='daily'?'รายวัน':mode==='monthly'?'รายเดือน':'รายปี'} ({thai(report.from)} – {thai(report.asOf)})</p></div>
-  <AdminPdfExport report={report} entries={entries} mode={mode} enabled={!busy&&!truncated&&activities.length>0}/>
+  <AdminPdfExport report={report} entries={entries} transfers={transfers} mode={mode} enabled={!busy&&!truncated&&activities.length>0}/>
   <section className="mon-kpis">{[{label:'งบประมาณรวม',value:report.total.budget},{label:'PO คงค้าง',value:report.total.po},{label:'ผลเบิกจ่ายสะสม ณ วันที่เลือก',value:report.total.disbursed},{label:'ยอดเบิกจ่ายสุทธิในช่วงที่เลือก',value:report.total.period},{label:'คงเหลือยังไม่เบิกจ่าย',value:report.total.remaining},{label:'วงเงินที่ยังไม่ผูกพัน',value:report.total.available}].map(k=><div className="mon-kpi" key={k.label}><span>{k.label}</span><strong>{fmt(k.value)}</strong><small>บาท</small></div>)}</section>
   <section className="mon-box"><div className="mon-justify"><h2>ความก้าวหน้าการเบิกจ่าย</h2><strong>{report.total.budget?(report.total.disbursed/report.total.budget*100).toFixed(2):'0.00'}%</strong></div><div className="mon-track"><div style={{width:Math.max(0,Math.min(100,report.total.disbursed/report.total.budget*100||0))+'%'}}/></div><p>เบิกจ่ายสะสม {fmt(report.total.disbursed)} บาท จากงบประมาณ {fmt(report.total.budget)} บาท</p>{truncated&&<p className="mon-error">มีรายการเบิกจ่ายเกิน 20,000 รายการ ระบบยังแสดงข้อมูลไม่ครบ กรุณาติดต่อผู้ดูแลระบบ</p>}<p className="mon-muted">ยอดตั้งต้น ณ 10 พฤศจิกายน 2569 เป็นยอดเบิกจ่ายสะสมก่อนเริ่มใช้ระบบ จึงยังไม่สามารถแจกแจงเป็นรายวันหรือรายเดือนย้อนหลังได้ ช่องเบิกจ่ายเพิ่มในช่วงที่เลือกนับเฉพาะรายการที่บันทึกภายหลังเท่านั้น</p></section>
-  <section className="mon-box" id="monitor-activities"><div className="mon-justify"><div><h2>ข้อมูลโครงการและกิจกรรมย่อย</h2><p>ตรวจสอบ เพิ่มหรือแก้ไขข้อมูล ชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารที่ได้รับอนุมัติ</p></div><div className="mon-master-actions mon-noprint"><button onClick={()=>createMaster()}>+ เพิ่มกิจกรรม/โครงการ</button><input className="mon-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></div></div>
-    <p className="mon-muted">วงเงินรวมปัจจุบัน {fmt(budgetTotal)} บาท · กรุณาตรวจสอบรายการเปลี่ยนแปลงวงเงินให้ตรงกับเอกสารที่ได้รับอนุมัติ</p>
+  <section className="mon-box" id="monitor-activities"><div className="mon-justify"><div><h2>ข้อมูลโครงการและกิจกรรมย่อย</h2><p>ตรวจสอบ เพิ่มหรือแก้ไขข้อมูล ชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารที่ได้รับอนุมัติ</p></div><div className="mon-master-actions mon-noprint"><button onClick={()=>createMaster()}>+ เพิ่มกิจกรรมในโครงการเดิม</button><Link href="/admin/reserve" className="mon-admin-reserve-btn">+ สร้างโครงการจากเงินโอน</Link><input className="mon-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></div></div>
+    <p className="mon-muted">วงเงินรวมปัจจุบัน {fmt(budgetTotal)} บาท (หักเงินที่จัดสรรจากกองเงินเพื่อป้องกันนับซ้ำ) · กรุณาตรวจสอบรายการเปลี่ยนแปลงวงเงินให้ตรงกับเอกสารอนุมัติ</p>
+    <div className="mon-reserve-link mon-noprint">
+      <div><strong>กองเงินคงเหลือจากการโอนเปลี่ยนแปลง</strong>
+        <p>ยอดยังไม่จัดสรร {fmt(reserveLeft)} บาท · จัดสรรแล้ว {fmt(reserveAllocated)} บาท · {reserveCount} รายการ</p>
+        <small>แยกจากโครงการหลัก 10 โครงการ และโครงการเพิ่มเติมเดิม</small>
+      </div><Link href="/admin/reserve">เปิดหน้าจัดสรรและสร้างโครงการจากเงินโอน →</Link>
+    </div>
     {filtered.map(code=>{const group=report.rows.filter(a=>a.project_code===code);const summary={budget:group.reduce((s,a)=>s+a.budget,0),paid:group.reduce((s,a)=>s+a.cumulative,0),po:group.reduce((s,a)=>s+a.po,0),period:group.reduce((s,a)=>s+a.period,0)};
       const major=hierarchyMetadata.groups.filter(h=>h.projectCode===code);
       const childRows=new Set(major.flatMap(h=>h.children));

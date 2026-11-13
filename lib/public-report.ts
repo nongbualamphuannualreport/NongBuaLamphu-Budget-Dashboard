@@ -4,6 +4,7 @@ import type {DisbursementReport} from '@/lib/disbursement';
 import type {MonitorActivity,MonitorEntry} from '@/lib/monitor';
 import type {MonitorPoEntry} from '@/lib/po';
 import {buildCurrentReport} from '@/lib/public-report-build';
+import {effectiveActivities,type ReallocationTransfer} from '@/lib/reallocation';
 import seed from '@/data/disbursement-latest.json';
 
 export type PublicReportResult={report:DisbursementReport|null;preview:boolean};
@@ -61,7 +62,13 @@ export async function getPublicReport(cutoff:string):Promise<PublicReportResult>
  }
  if(!data?.length)return referenceReport(asOf);
  if(asOf<'2026-11-10')return {report:null,preview:false};
- const [entries,poEntries]=await Promise.all([readEntries(asOf),readPoEntries(asOf)]);
- const report=buildCurrentReport(data as MonitorActivity[],entries,asOf,poEntries);
+ const [entries,poEntries,transfersResult]=await Promise.all([
+  readEntries(asOf),readPoEntries(asOf),
+  db.from('monitor_reallocation_transfers').select('activity_id,allocated_on,amount,cancelled_on').lte('allocated_on',asOf).order('allocated_on').limit(1000)
+ ]);
+ if(transfersResult.error)throw Error('อ่านการจัดสรรเงินโอนเปลี่ยนแปลงไม่สำเร็จ: '+transfersResult.error.message);
+ const effective=effectiveActivities(data as MonitorActivity[],
+  (transfersResult.data??[]) as Pick<ReallocationTransfer,'activity_id'|'allocated_on'|'amount'|'cancelled_on'>[],asOf);
+ const report=buildCurrentReport(effective,entries,asOf,poEntries);
  return {report,preview:false};
 }
