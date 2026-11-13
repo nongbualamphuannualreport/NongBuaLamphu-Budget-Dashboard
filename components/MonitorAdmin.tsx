@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useMemo,useRef,useState,type ReactNode,type KeyboardEvent} from 'react';
 import Link from 'next/link';
+import {Plus,Search,X} from 'lucide-react';
 import {createClient} from '@supabase/supabase-js';
 import {bounds,fmt,reportRows,type MonitorActivity,type MonitorEntry,type MonitorPeriod} from '@/lib/monitor';
 import hierarchyMetadata from '@/data/hierarchy-metadata.json';
@@ -144,7 +145,20 @@ export function MonitorAdmin(){
   {(section==='projects'||section==='po'||section==='disbursements')&&<>
     {section==='po'&&<div className="mon-menu-instructions mon-noprint"><strong>จัดการ PO / ยอดผูกพัน</strong><p>เปิดโครงการและกิจกรรมที่ต้องการ เพื่อบันทึก PO ลด PO หรือจ่ายจาก PO</p></div>}
     {section==='disbursements'&&<div className="mon-menu-instructions mon-noprint"><strong>บันทึกเบิกจ่าย</strong><p>เลือกกิจกรรมเพื่อบันทึกยอดเบิกจ่ายจริง หรือลดยอดเมื่อมีเงินส่งคืน</p><button type="button" onClick={()=>openNew('')}>+ บันทึกเบิกจ่ายใหม่</button></div>}
-    <section className="mon-box" id="monitor-activities"><div className="mon-justify"><div><h2>{section==='po'?'เลือกกิจกรรมสำหรับบันทึก PO':section==='disbursements'?'เลือกกิจกรรมสำหรับบันทึกเบิกจ่าย':'ข้อมูลโครงการและกิจกรรมย่อย'}</h2><p>{section==='projects'?'ตรวจสอบและปรับปรุงชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารอนุมัติ':'เปิดโครงการที่ต้องการ แล้วใช้ปุ่มในแถวกิจกรรมย่อย'}</p></div><div className="mon-master-actions mon-noprint">{section==='projects'&&<><button onClick={()=>createMaster()}>+ เพิ่มกิจกรรมในโครงการเดิม</button></>}<input className="mon-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></div></div>
+    <section className="mon-box" id="monitor-activities">
+      <div className="mon-projects-heading">
+        <h2>{section==='po'?'เลือกกิจกรรมสำหรับบันทึก PO':section==='disbursements'?'เลือกกิจกรรมสำหรับบันทึกเบิกจ่าย':'ข้อมูลโครงการและกิจกรรมย่อย'}</h2>
+        <p>{section==='projects'?'ตรวจสอบและปรับปรุงชื่อกิจกรรม หน่วยดำเนินการ และวงเงินตามเอกสารอนุมัติ':'เปิดโครงการที่ต้องการ แล้วใช้ปุ่มในแถวกิจกรรมย่อย'}</p>
+      </div>
+      <div className="mon-projects-toolbar mon-noprint">
+        {section==='projects'&&<button type="button" className="mon-project-add" onClick={()=>createMaster()}><Plus size={19} aria-hidden="true"/> เพิ่มกิจกรรมในโครงการเดิม</button>}
+        <label className="mon-project-search">
+          <Search size={20} aria-hidden="true" className="mon-project-search-icon"/>
+          <input className="mon-search" aria-label="ค้นหาโครงการ กิจกรรม หรือหน่วยงาน" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/>
+          {search.trim()&&<button type="button" className="mon-search-clear" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา" onClick={()=>setSearch('')}><X size={17} aria-hidden="true"/></button>}
+        </label>
+      </div>
+      {search.trim()&&<p className="mon-search-count mon-noprint" role="status">พบ {filtered.length} โครงการที่ตรงกับคำค้นหา{filtered.length===0?' — ลองใช้คำค้นหาอื่น':''}</p>}
     <p className="mon-muted">วงเงินรวมปัจจุบัน {fmt(budgetTotal)} บาท (หักเงินที่จัดสรรจากกองเงินเพื่อป้องกันนับซ้ำ) · กรุณาตรวจสอบรายการเปลี่ยนแปลงวงเงินให้ตรงกับเอกสารอนุมัติ</p>
     {filtered.map(code=>{const group=report.rows.filter(a=>a.project_code===code);const summary={budget:group.reduce((s,a)=>s+a.budget,0),paid:group.reduce((s,a)=>s+a.cumulative,0),po:group.reduce((s,a)=>s+a.po,0),period:group.reduce((s,a)=>s+a.period,0)};
       const major=hierarchyMetadata.groups.filter(h=>h.projectCode===code);
