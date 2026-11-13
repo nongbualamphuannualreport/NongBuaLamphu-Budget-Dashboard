@@ -55,7 +55,7 @@ export function DisbursementDashboard(){
     <div className={'ds-screen ds-shell'+(menuCollapsed?' ds-shell-collapsed':'')}>
       {menuOpen&&<button className="ds-sidebar-backdrop" aria-label="ปิดเมนู" onClick={()=>setMenuOpen(false)}/>}
       <aside className={'ds-sidebar'+(menuOpen?' ds-sidebar-open':'')} aria-label="เมนูรายงานงบประมาณ">
-        <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div className="ds-sidebar-brand"><strong>Budget Dashboard</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button type="button" className="ds-sidebar-collapse" onClick={()=>setMenuCollapsed(v=>!v)} aria-label={menuCollapsed?"ขยายเมนูด้านซ้าย":"ย่อเมนูด้านซ้าย"} title={menuCollapsed?"ขยายเมนู":"ย่อเมนู"} aria-expanded={!menuCollapsed}>{menuCollapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><button type="button" className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
+        <div className="ds-sidebar-head"><span className="ds-mark">นภ</span><div className="ds-sidebar-brand"><strong>รายงานงบประมาณ</strong><small>ปีงบประมาณ พ.ศ. 2570</small></div><button type="button" className="ds-sidebar-collapse" onClick={()=>setMenuCollapsed(v=>!v)} aria-label={menuCollapsed?"ขยายเมนูด้านซ้าย":"ย่อเมนูด้านซ้าย"} title={menuCollapsed?"ขยายเมนู":"ย่อเมนู"} aria-expanded={!menuCollapsed}>{menuCollapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><button type="button" className="ds-sidebar-close" onClick={()=>setMenuOpen(false)} aria-label="ปิดเมนู"><X size={19}/></button></div>
         <div className="ds-sidebar-group">ภาพรวมและโครงการ</div>
         {navItems.slice(0,4).map(({id,label,Icon})=><button key={id} className={'ds-sidebar-link'+(view===id?' active':'')} onClick={()=>selectView(id)} aria-current={view===id?'page':undefined} title={label}><Icon size={19}/><span>{label}</span></button>)}
         <div className="ds-sidebar-group">บริหารเงินโอนเปลี่ยนแปลง</div>
@@ -76,7 +76,7 @@ export function DisbursementDashboard(){
           </div>
           <div className="ds-hero-total"><span>งบประมาณปี 2570</span><strong>{report?moneyTH(report.totals.budget):'—'}</strong><small>บาท · {totalProjects} โครงการ</small><div className="ds-hero-ring"/></div>
         </section>}
-        <div className="ds-section-title"><span>รายงานประจำปีงบประมาณ พ.ศ. 2570</span><h2>{navItems.find(item=>item.id===view)?.label}</h2><p>{view==='overview'?'ภาพรวมสถานะและผลการเบิกจ่าย':view==='projects'?'เฉพาะ 10 โครงการหลักตามบัญชีงบประมาณ':view==='activities'?'ค้นหาและตรวจสอบกิจกรรมย่อยทุกโครงการ':'แสดงโครงการเพิ่มภายหลังโดยไม่รวมเป็น 10 โครงการหลัก'}</p></div>
+        <div className="ds-section-title"><span>รายงานประจำปีงบประมาณ พ.ศ. 2570</span><h2>{navItems.find(item=>item.id===view)?.label}</h2><p>{view==='overview'?'ภาพรวมสถานะและผลการเบิกจ่าย':view==='projects'?'เฉพาะ 10 โครงการหลักตามบัญชีงบประมาณ':view==='activities'?'ค้นหาและตรวจสอบกิจกรรมย่อยทุกโครงการ':'โครงการที่ได้รับจัดสรรเพิ่มเติม'}</p></div>
         <div className="ds-toolbar">
           <div className="ds-view-controls"><label>ช่วงข้อมูล <select aria-label="เลือกช่วงรายงาน" value={date?'history':'latest'} onChange={e=>{if(e.target.value==='latest')setDate('');else if(!date&&report)setDate(report.as_of_date);}}><option value="latest">ข้อมูลล่าสุด</option><option value="history">ข้อมูลย้อนหลัง</option></select></label>
             {date&&<label>ข้อมูล ณ หรือก่อน <input aria-label="วันที่ย้อนหลัง" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
@@ -85,7 +85,7 @@ export function DisbursementDashboard(){
         {loading?<section className="ds-empty"><BarChart3 size={30}/><h2>กำลังโหลดข้อมูล...</h2></section>:error?<section className="ds-empty ds-error"><h2>ไม่สามารถแสดงรายงานได้</h2><p>{error}</p></section>:!report?<section className="ds-empty"><BarChart3 size={32}/><h2>ยังไม่มีข้อมูลสำหรับช่วงเวลาที่เลือก</h2><p>กรุณาเลือกวันที่อื่นหรือติดต่อเจ้าหน้าที่</p></section>:<>
           {view==='overview'&&<><section className="ds-kpis" aria-label="สรุปผลการเบิกจ่าย">
             <Metric label="งบประมาณรวม" value={moneyTH(report.totals.budget)} sub="บาท"/>
-            <Metric label="PO คงค้าง" value={moneyTH(report.totals.po)} sub="บาท · ยอดผูกพันตามสัญญา"/>
+            <Metric label="ยอดผูกพัน (PO)" value={moneyTH(report.totals.po)} sub="บาท · ยอดผูกพันตามสัญญา"/>
             <Metric label="เบิกจ่ายสะสม" value={moneyTH(report.totals.disbursed)} sub="บาท" tone="blue"/>
             <Metric label="คงเหลือยังไม่เบิกจ่าย" value={moneyTH(report.totals.remaining)} sub="บาท"/>
             <Metric label="อัตราการเบิกจ่าย" value={percentTH(report.totals.disbursed,report.totals.budget)+'%'} sub="ของงบประมาณรวม" tone="accent"/>
@@ -94,17 +94,17 @@ export function DisbursementDashboard(){
             <section className="ds-panel ds-progress"><div className="ds-panel-head"><div><span className="ds-overline">ความก้าวหน้าการใช้จ่ายงบประมาณ</span><h2>ความก้าวหน้าการเบิกจ่าย</h2></div><span className="ds-mini-tag">ข้อมูลสะสม</span></div>
               <strong>{percentTH(report.totals.disbursed,report.totals.budget)}%</strong>
               <div className="ds-track"><i style={{width:pct(report.totals.disbursed,report.totals.budget)+'%'}}/></div>
-              <div className="ds-progress-caption"><span>PO คงค้าง <b>{moneyTH(report.totals.po)} บาท</b></span><span>เบิกจ่ายแล้ว <b>{moneyTH(report.totals.disbursed)} บาท</b></span><span>คงเหลือ <b>{moneyTH(report.totals.remaining)} บาท</b></span></div>
+              <div className="ds-progress-caption"><span>ยอดผูกพัน (PO) <b>{moneyTH(report.totals.po)} บาท</b></span><span>เบิกจ่ายแล้ว <b>{moneyTH(report.totals.disbursed)} บาท</b></span><span>คงเหลือ <b>{moneyTH(report.totals.remaining)} บาท</b></span></div>
             </section>
             <section className="ds-panel ds-overview"><div className="ds-panel-head"><div><span className="ds-overline">สถานะโครงการ</span><h2>ภาพรวมรายโครงการ</h2></div></div>
               <div className="ds-overview-numbers"><div><strong>{totalProjects}</strong><span>โครงการหลัก</span></div><div><strong>{active}</strong><span>เริ่มเบิกจ่ายแล้ว</span></div><div><strong>{totalProjects-active}</strong><span>ยังไม่เบิกจ่าย (โครงการหลัก)</span></div></div>
-              <p>โครงการเพิ่มเติม {extraProjects} โครงการแสดงแยกจากโครงการหลัก · กดดูรายละเอียดโครงการหรือเงินโอนเปลี่ยนแปลงได้</p>
+              <p>มีโครงการเพิ่มเติม {extraProjects} โครงการ สามารถดูรายละเอียดได้ที่เมนูโครงการที่เพิ่มภายหลัง</p>
             </section>
           </div>
           </>}
-          {(view==='projects'||view==='activities'||view==='extras')&&<section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">รายละเอียดผลการเบิกจ่าย</span><h2>{view==='projects'?'รายละเอียด 10 โครงการหลัก':view==='extras'?'โครงการเพิ่มเติมนอกบัญชีหลัก':'ผลการเบิกจ่ายรายกิจกรรมย่อย'}</h2><p>10 โครงการหลักตามแผนเดิม · โครงการเพิ่มเติมแสดงแยก · <Link href="/reserve">ติดตามเงินโอนเปลี่ยนแปลง</Link></p></div><div className="ds-controls"><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></label></div></div>
+          {(view==='projects'||view==='activities'||view==='extras')&&<section className="ds-panel ds-details"><div className="ds-section-head"><div><span className="ds-overline">รายละเอียดผลการเบิกจ่าย</span><h2>{view==='projects'?'รายละเอียด 10 โครงการหลัก':view==='extras'?'โครงการเพิ่มเติมนอกบัญชีหลัก':'ผลการเบิกจ่ายรายกิจกรรมย่อย'}</h2><p>รายละเอียดงบประมาณและผลการดำเนินงาน · <Link href="/reserve">ดูเงินโอนเปลี่ยนแปลง</Link></p></div><div className="ds-controls"><label className="ds-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาโครงการ / กิจกรรม / หน่วยงาน"/></label></div></div>
             {view==='projects'?<ProjectHierarchy report={report} search={search} mode="core"/>:view==='extras'?<ProjectHierarchy report={report} search={search} mode="extras"/>:<div className="ds-table-wrap"><table className="ds-table"><thead><tr><th>ลำดับ</th><th>กิจกรรม / หน่วยดำเนินการ</th><th>งบประมาณ (บาท)</th><th>PO (บาท)</th><th>เบิกจ่ายแล้ว (บาท)</th><th>คงเหลือ (บาท)</th><th>ร้อยละ</th></tr></thead><tbody>{filtered.map((p:DisbursementRow,i:number)=><tr key={p.code??p.activity??i}><td>{String(i+1).padStart(2,'0')}</td><td><b>{p.name??p.activity}</b><small>{p.agency??(p.project_code??p.code??'')}</small></td><td>{moneyTH(p.budget)}</td><td className="ds-po">{moneyTH(p.po)}</td><td className="ds-paid">{moneyTH(p.disbursed)}</td><td>{moneyTH(p.remaining)}</td><td><div className="ds-percent"><i style={{width:pct(p.disbursed,p.budget)+'%'}}/></div>{percentTH(p.disbursed,p.budget)}%</td></tr>)}</tbody></table></div>}
-            <p className="ds-footnote">แหล่งข้อมูล: {report.source_file} · ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
+            <p className="ds-footnote">ข้อมูล ณ {thaiDate(report.as_of_date)}</p>
           </section>}
         </>}
         <footer className="ds-footer"><span>© จังหวัดหนองบัวลำภู · ระบบรายงานผลการเบิกจ่ายปีงบประมาณ พ.ศ. 2570</span><span>ข้อมูลจำแนกตามโครงการและกิจกรรม</span></footer>
