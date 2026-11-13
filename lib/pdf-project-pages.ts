@@ -1,14 +1,20 @@
 // PDF-only layout model. A project appears once, followed by all its activities.
 export type PdfProject={code:string;name:string;budget:number;paid:number;remaining:number};
 export type PdfActivity={id:string;project_code:string;name:string;agency:string;budget:number;cumulative:number;remaining:number};
+export type PdfReduction = {
+ id:string;activity_id:string;project_code:string;paid_on:string;amount:number;reference:string;note:string;
+};
 export type PdfDetailItem=
  | {kind:'project';project:PdfProject;ordinal:number}
- | {kind:'activity';row:PdfActivity;ordinal:number};
+ | {kind:'activity';row:PdfActivity;ordinal:number}
+ | {kind:'reduction';row:PdfReduction};
 const estimatedProjectHeight=(p:PdfProject)=>90+Math.ceil((p.name||'').length/39)*21;
 const estimatedActivityHeight=(a:PdfActivity)=>63+
  Math.max(1,Math.ceil((a.name||'').length/42))*21+
  Math.max(1,Math.ceil((a.agency||'').length/62))*16;
-export function paginatePdfProjectDetails(projects:PdfProject[],activities:PdfActivity[]):PdfDetailItem[][]{
+const estimatedReductionHeight=(r:PdfReduction)=>44+
+ Math.max(0,Math.ceil(((r.note||'')+(r.reference||'')).length/85)-1)*15;
+export function paginatePdfProjectDetails(projects:PdfProject[],activities:PdfActivity[],reductions:PdfReduction[]=[]):PdfDetailItem[][]{
  const pages:PdfDetailItem[][]=[[]];
  let used=0;
  let capacity=805; // The first detail page has the report heading.
@@ -25,7 +31,12 @@ export function paginatePdfProjectDetails(projects:PdfProject[],activities:PdfAc
   // Never orphan a project heading at the bottom of a page.
   if(used+cost+first>capacity&&pages[pages.length-1].length)startNext();
   push({kind:'project',project,ordinal:index+1},cost);
-  group.forEach((row,i)=>push({kind:'activity',row,ordinal:i+1},estimatedActivityHeight(row)));
+  group.forEach((row,i)=>{
+   push({kind:'activity',row,ordinal:i+1},estimatedActivityHeight(row));
+   reductions.filter(r=>r.activity_id===row.id)
+    .sort((a,b)=>a.paid_on.localeCompare(b.paid_on)||a.id.localeCompare(b.id))
+    .forEach(red=>push({kind:'reduction',row:red},estimatedReductionHeight(red)));
+  });
  });
  return pages.filter(page=>page.length);
 }
@@ -52,8 +63,9 @@ export function paginateMeasuredPdfDetails(
   const h=heights[i];
   if(!Number.isFinite(h)||h<=0)throw Error('ไม่สามารถวัดความสูงรายการในรายงานได้');
   // A heading should travel with the first activity whenever they fit together.
-  const firstChild=item.kind==='project'&&entries[i+1]?.kind==='activity'
-   ?heights[i+1] : 0;
+  const next=entries[i+1];
+  const firstChild=(item.kind==='project'&&next?.kind==='activity'
+    || item.kind==='activity'&&next?.kind==='reduction') ? heights[i+1] : 0;
   const need=h+(firstChild>0&&h+firstChild<=capacity?firstChild:0);
   if(pages[pages.length-1].length&&used+need>capacity)newPage();
   pages[pages.length-1].push(item);used+=h;

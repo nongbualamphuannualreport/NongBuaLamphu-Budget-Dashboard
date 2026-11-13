@@ -132,3 +132,33 @@
 .apdf-detail-columns .apdf-detail-figures>span{
   color:#496674;font-size:10px;line-height:1.35;white-space:normal;text-align:right;
 }
+
+/* Financial reductions: visible only for reports with actual reduction entries. */
+.apdf-reduction-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:0 0 10px;padding:8px 11px;border-radius:7px;
+  background:#fff1e4;border-left:3px solid #bd7547;
+  color:#804a2d;font-size:11px;line-height:1.45;
+}
+.apdf-reduction-summary strong{font-size:11px;flex-shrink:0}
+.apdf-reduction-summary span{text-align:right}
+.apdf-reduction-line{
+  display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.1fr);
+  align-items:start;column-gap:12px;min-width:0;
+  margin:0 0 5px 20px;padding:8px 10px;border-bottom:1px solid #f1dfce;
+  background:#fffbf6;border-left:2px solid #d29b70;border-radius:4px;
+  min-height:49px;
+}
+.apdf-reduction-marker{
+  flex:0 0 18px;font-weight:800;color:#a7653f;
+}
+.apdf-reduction-line .apdf-detail-main strong{
+  display:block;font-size:11px;line-height:1.45;color:#965432;
+}
+.apdf-reduction-line .apdf-detail-main small{
+  display:block;margin-top:2px;font-size:10px;line-height:1.45;
+  color:#796c63;overflow-wrap:anywhere;
+}
+.apdf-reduction-line .apdf-detail-figures b{
+  color:#a65c35;font-size:11px;font-weight:800;
+}

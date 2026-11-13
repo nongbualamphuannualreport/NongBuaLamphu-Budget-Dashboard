@@ -49,3 +49,14 @@ test('measured paginator fills pages without wasting space and keeps project wit
   }
  }
 });
+
+test('reduction rows appear directly beneath the affected activity, not as another project',()=>{
+ const p1=p('P01'),p2=p('P02');
+ const red={id:'red1',activity_id:'P01-1',project_code:'P01',paid_on:'2026-11-13',amount:-200,
+  reference:'ฎีกา 123/2569',note:'เงินส่งคืน'};
+ const entries=paginatePdfProjectDetails([p1,p2],[a('P01',1),a('P02',1)],[red]).flat();
+ const first=entries.findIndex(x=>x.kind==='activity'&&x.row.id==='P01-1');
+ assert.equal(entries[first+1]?.kind,'reduction');
+ if(entries[first+1]?.kind==='reduction')assert.equal(entries[first+1].row.amount,-200);
+ assert.equal(entries.filter(x=>x.kind==='project').length,2);
+});

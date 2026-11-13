@@ -2,7 +2,7 @@
 
 import {useMemo,useRef,useState} from 'react';
 import {flushSync} from 'react-dom';
-import type {MonitorActivity,MonitorPeriod} from '@/lib/monitor';
+import type {MonitorActivity,MonitorPeriod,MonitorEntry} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
 import './admin-pdf-export.css';
 import {paginatePdfProjectDetails,paginateMeasuredPdfDetails,type PdfDetailItem} from '@/lib/pdf-project-pages';
@@ -13,7 +13,7 @@ type Report={
  total:{budget:number;disbursed:number;period:number;remaining:number}
 };
 type Project={code:string;name:string;budget:number;paid:number;remaining:number};
-type Props={report:Report;mode:MonitorPeriod;enabled:boolean};
+type Props={report:Report;mode:MonitorPeriod;enabled:boolean;entries:MonitorEntry[]};
 
 const thaiDate=(value:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{
  day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'
@@ -33,7 +33,7 @@ function PageFrame({children,page,total,created,asOf}:{children:React.ReactNode;
   </footer>
  </section>;
 }
-export function AdminPdfExport({report,mode,enabled}:Props){
+export function AdminPdfExport({report,mode,enabled,entries}:Props){
  const sheets=useRef<HTMLDivElement>(null);
  const [generating,setGenerating]=useState<'summary'|'full'|null>(null);
  const [status,setStatus]=useState('');
@@ -50,14 +50,22 @@ export function AdminPdfExport({report,mode,enabled}:Props){
  const reportProjects=projects.filter(p=>p.code!=='RESERVE');
  const activities=report.rows.filter(r=>r.project_code!=='RESERVE');
  const started=reportProjects.filter(p=>p.paid>0);
+ const reductions=useMemo(()=>{
+  const activityMap=new Map(activities.map(a=>[a.id,a]));
+  return entries.filter(e=>Number(e.amount)<0&&e.paid_on<=report.asOf&&activityMap.has(e.activity_id))
+   .map(e=>({id:e.id,activity_id:e.activity_id,project_code:activityMap.get(e.activity_id)!.project_code,
+     paid_on:e.paid_on,amount:Number(e.amount),reference:e.reference||'',note:e.note||''}));
+ },[entries,activities,report.asOf]);
+ const periodReductions=reductions.filter(r=>r.paid_on>=report.from&&r.paid_on<=report.asOf);
+ const periodReductionAmount=periodReductions.reduce((s,r)=>s+Math.abs(r.amount),0);
  const pct=report.total.budget?Math.max(0,Math.min(100,report.total.disbursed/report.total.budget*100)):0;
  const layoutKey=report.asOf+'|'+report.rows.map(r=>
   [r.id,r.project_code,r.project_name,r.name,r.agency,r.budget,r.cumulative,r.remaining].join(':')
- ).join('|');
+ ).join('|')+'|'+reductions.map(r=>[r.id,r.activity_id,r.paid_on,r.amount,r.reference,r.note].join(':')).join('|');
  const defaultPages=paginatePdfProjectDetails(projects,activities.map(a=>({
   id:a.id,project_code:a.project_code,name:a.name,agency:a.agency,
   budget:a.budget,cumulative:a.cumulative,remaining:a.remaining
- })));
+ })),reductions);
  const detailPages=measuredLayout?.key===layoutKey?measuredLayout.pages:defaultPages;
  const totalPages=1+detailPages.length;
  const periodLabel=mode==='daily'?'รายวัน':mode==='monthly'?'รายเดือน':'รายปีงบประมาณ';
@@ -81,7 +89,7 @@ export function AdminPdfExport({report,mode,enabled}:Props){
     const heading=firstDetail?.querySelector<HTMLElement>('.apdf-detail-intro');
     const cols=firstDetail?.querySelector<HTMLElement>('.apdf-detail-columns');
     const total=root.querySelector<HTMLElement>('.apdf-detail-grand-total');
-    const rowElements=Array.from(root.querySelectorAll<HTMLElement>('.apdf-project-line, .apdf-subactivity-line'));
+    const rowElements=Array.from(root.querySelectorAll<HTMLElement>('.apdf-project-line, .apdf-subactivity-line, .apdf-reduction-line'));
     const items=detailPages.flat();
     if(!body||!heading||!cols||!total||rowElements.length!==items.length)
      throw new Error('ไม่สามารถวัดพื้นที่รายงานได้ครบถ้วน');
@@ -149,10 +157,15 @@ export function AdminPdfExport({report,mode,enabled}:Props){
     </header>
     <div className="apdf-date">ข้อมูลเบิกจ่าย ณ {thaiDate(report.asOf)}</div>
     <div className="apdf-metrics">
-     <div><span>ผลเบิกจ่ายสะสม</span><b><Money value={report.total.disbursed}/></b><small>บาท</small></div>
+     <div><span>ผลเบิกจ่ายสะสมสุทธิ</span><b><Money value={report.total.disbursed}/></b><small>บาท</small></div>
      <div><span>คงเหลือยังไม่เบิกจ่าย</span><b><Money value={report.total.remaining}/></b><small>บาท</small></div>
      <div className="apdf-rate"><span>อัตราการเบิกจ่าย</span><b>{pct.toFixed(2)}%</b><small>ของงบประมาณ</small></div>
     </div>
+    {periodReductions.length>0&&
+      <div className="apdf-reduction-summary">
+        <strong>รายการลดยอดเบิกจ่ายในช่วงรายงาน</strong>
+        <span>−{fmt(periodReductionAmount)} บาท ({periodReductions.length} รายการ) · รวมอยู่ในยอดเบิกจ่ายสะสมสุทธิแล้ว</span>
+      </div>}
     <div className="apdf-section-heading"><h2>ความก้าวหน้าการเบิกจ่าย</h2><strong>{pct.toFixed(2)}%</strong></div>
     <div className="apdf-progress"><i style={{width:pct+'%'}}/></div>
     <div className="apdf-overview">
@@ -178,8 +191,8 @@ export function AdminPdfExport({report,mode,enabled}:Props){
         <div className="apdf-detail-figures"><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือ</span></div>
       </div>}
       <div className="apdf-detail-list">
-        {items.map((item,i)=>item.kind==='project'?
-          <section className="apdf-project-line" key={'project-'+item.project.code}>
+        {items.map((item,i)=>{
+          if(item.kind==='project')return <section className="apdf-project-line" key={'project-'+item.project.code}>
             <div className="apdf-detail-main">
               <span className="apdf-project-index">{String(item.ordinal).padStart(2,'0')}</span>
               <strong>{item.project.code==='RESERVE'?'รายการเงินเหลือจ่าย':item.project.name}</strong>
@@ -189,8 +202,8 @@ export function AdminPdfExport({report,mode,enabled}:Props){
               <b className="apdf-paid">{fmt(item.project.paid)}</b>
               <b>{fmt(item.project.remaining)}</b>
             </div>
-          </section>:
-          <div className="apdf-subactivity-line" key={'activity-'+item.row.id}>
+          </section>;
+          if(item.kind==='activity')return <div className="apdf-subactivity-line" key={'activity-'+item.row.id}>
             <div className="apdf-detail-main">
               <span className="apdf-subactivity-index">{item.ordinal}.</span>
               <div>
@@ -203,8 +216,21 @@ export function AdminPdfExport({report,mode,enabled}:Props){
               <span className="apdf-paid">{fmt(item.row.cumulative)}</span>
               <span>{fmt(item.row.remaining)}</span>
             </div>
-          </div>
-        )}
+          </div>;
+          return <div className="apdf-reduction-line" key={'reduction-'+item.row.id}>
+            <div className="apdf-detail-main">
+              <span className="apdf-reduction-marker">−</span>
+              <div>
+                <strong>ลดยอดเบิกจ่าย · {thaiDate(item.row.paid_on)}</strong>
+                {(item.row.reference||item.row.note)&&
+                  <small>{[item.row.reference,item.row.note].filter(Boolean).join(' · ')}</small>}
+              </div>
+            </div>
+            <div className="apdf-detail-figures">
+              <span></span><b>−{fmt(Math.abs(item.row.amount))}</b><span></span>
+            </div>
+          </div>;
+        })}
       </div>
       {idx===detailPages.length-1&&<div className="apdf-detail-grand-total">
         <strong>รวมงบประมาณทั้งสิ้น</strong>
