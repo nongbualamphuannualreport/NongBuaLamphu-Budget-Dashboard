@@ -163,8 +163,13 @@ export function AdminPdfExport({report,mode,enabled,entries}:Props){
     </div>
     {periodReductions.length>0&&
       <div className="apdf-reduction-summary">
-        <strong>รายการลดยอดเบิกจ่ายในช่วงรายงาน</strong>
-        <span>−{fmt(periodReductionAmount)} บาท ({periodReductions.length} รายการ) · รวมอยู่ในยอดเบิกจ่ายสะสมสุทธิแล้ว</span>
+        <div className="apdf-reduction-summary-copy">
+          <strong>ลดยอดเบิกจ่ายในช่วงรายงาน</strong>
+          <small>{periodReductions.length} รายการ · หักออกจากยอดเบิกจ่ายสะสมสุทธิแล้ว</small>
+        </div>
+        <div className="apdf-reduction-summary-value">
+          <b>−{fmt(periodReductionAmount)}</b><span>บาท</span>
+        </div>
       </div>}
     <div className="apdf-section-heading"><h2>ความก้าวหน้าการเบิกจ่าย</h2><strong>{pct.toFixed(2)}%</strong></div>
     <div className="apdf-progress"><i style={{width:pct+'%'}}/></div>

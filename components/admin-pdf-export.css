@@ -135,13 +135,25 @@
 
 /* Financial reductions: visible only for reports with actual reduction entries. */
 .apdf-reduction-summary{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  margin:0 0 10px;padding:8px 11px;border-radius:7px;
-  background:#fff1e4;border-left:3px solid #bd7547;
-  color:#804a2d;font-size:11px;line-height:1.45;
+  /* Leave a real A4-safe gap under the three summary cards. */
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  column-gap:20px;row-gap:5px;
+  margin:20px 0 16px;padding:12px 15px;
+  min-height:64px;border-radius:8px;
+  background:#fff4e9;border:1px solid #eed5bf;border-left:4px solid #bd7547;
+  color:#804a2d;font-size:12px;line-height:1.5;
 }
-.apdf-reduction-summary strong{font-size:11px;flex-shrink:0}
-.apdf-reduction-summary span{text-align:right}
+.apdf-reduction-summary-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+.apdf-reduction-summary-copy strong{display:block;font-size:12px;line-height:1.5}
+.apdf-reduction-summary-copy small{display:block;font-size:10px;line-height:1.5;color:#886a56}
+.apdf-reduction-summary-value{display:flex;align-items:baseline;justify-content:flex-end;gap:5px;white-space:nowrap}
+.apdf-reduction-summary-value b{font-size:19px;line-height:1.4;color:#a15d39;font-variant-numeric:tabular-nums}
+.apdf-reduction-summary-value span{font-size:11px;color:#885f48}
+/* Protect the cards' bottom labels from visually touching the reduction note. */
+.apdf-metrics{align-items:stretch}
+.apdf-metrics>div{min-height:116px;display:flex;flex-direction:column;justify-content:flex-start}
+.apdf-metrics>div small{margin-top:auto;padding-top:7px}
+
 .apdf-reduction-line{
   display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.1fr);
   align-items:start;column-gap:12px;min-width:0;
