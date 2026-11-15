@@ -22,16 +22,18 @@ export async function GET(req:NextRequest){
   if(!await authorize(req))return unauthorized();
   const db=serverDb();
   try{
-    const [a,e,poResult,transfersResult]=await Promise.all([
+    const [a,e,poResult,transfersResult,savingsResult]=await Promise.all([
       db.from('monitor_activities').select('*').order('project_code').order('source_row'),
       readAllEntries(db),
       db.from('monitor_po_entries').select('*').order('po_on',{ascending:false}).order('id',{ascending:true}).limit(20001),
-      db.from('monitor_reallocation_transfers').select('*').order('allocated_on',{ascending:false}).order('id',{ascending:true}).limit(1001)
+      db.from('monitor_reallocation_transfers').select('*').order('allocated_on',{ascending:false}).order('id',{ascending:true}).limit(1001),
+      db.from('monitor_project_savings').select('*').order('confirmed_on',{ascending:false}).limit(1001)
     ]);
     if(a.error)return bad(a.error.message,500);
     if(poResult.error)return bad('อ่านข้อมูล PO ไม่สำเร็จ: '+poResult.error.message,500);
     if(transfersResult.error)return bad('อ่านข้อมูลเงินโอนเปลี่ยนแปลงไม่สำเร็จ: '+transfersResult.error.message,500);
-    return NextResponse.json({activities:a.data??[],entries:e.rows,poEntries:poResult.data??[],transfers:transfersResult.data??[],truncated:e.truncated||((poResult.data??[]).length>20000)||((transfersResult.data??[]).length>1000)},{headers:{'Cache-Control':'no-store'}});
+    if(savingsResult.error)return bad('อ่านข้อมูลเงินเหลือจ่ายไม่สำเร็จ',500);
+    return NextResponse.json({activities:a.data??[],entries:e.rows,poEntries:poResult.data??[],transfers:transfersResult.data??[],savings:savingsResult.data??[],truncated:e.truncated||((poResult.data??[]).length>20000)||((transfersResult.data??[]).length>1000)||((savingsResult.data??[]).length>1000)},{headers:{'Cache-Control':'no-store'}});
   }catch(err){return bad(err instanceof Error?err.message:'อ่านข้อมูลไม่สำเร็จ',500);}
 }
 export async function POST(req:NextRequest){
