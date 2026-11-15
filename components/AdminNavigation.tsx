@@ -2,13 +2,13 @@
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import {
-  LayoutDashboard,FolderTree,FileClock,FileDown,
+  LayoutDashboard,FolderTree,FileClock,FileDown,PiggyBank,
   HandCoins,ReceiptText,Wallet,ExternalLink,Menu,X,UserRound,RefreshCw,LogOut
 } from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import './admin-navigation.css';
 
-export type AdminView='overview'|'projects'|'po'|'disbursements'|'history'|'pdf';
+export type AdminView='overview'|'projects'|'po'|'disbursements'|'history'|'pdf'|'savings';
 type NavItem={id:AdminView|'reserve';label:string;hint:string;Icon:LucideIcon};
 const GROUPS:{heading:string;items:NavItem[]}[]=[
  {heading:'ภาพรวมและข้อมูล',items:[
@@ -21,6 +21,7 @@ const GROUPS:{heading:string;items:NavItem[]}[]=[
   {id:'history',label:'ประวัติเบิกจ่าย',hint:'ตรวจสอบและแก้ไขรายการ',Icon:FileClock},
  ]},
  {heading:'กองเงินและรายงาน',items:[
+  {id:'savings',label:'เงินเหลือจ่ายจากโครงการ',hint:'บันทึกเงินเหลือจ่ายที่ยืนยันแล้ว',Icon:PiggyBank},
   {id:'reserve',label:'เงินโอนเปลี่ยนแปลง',hint:'จัดสรร สร้างโครงการ และคืนเงิน',Icon:Wallet},
   {id:'pdf',label:'ดาวน์โหลดรายงาน',hint:'รายงานสำหรับเจ้าหน้าที่',Icon:FileDown},
  ]}
