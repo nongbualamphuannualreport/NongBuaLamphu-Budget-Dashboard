@@ -411,3 +411,10 @@
 @media screen and (max-width:900px){
   .ds-shell .ds-top-inner,.ds-shell .ds-content{width:calc(100% - 28px)}
 }
+
+
+/* Six balanced public KPIs, including separately identified confirmed savings. */
+@media screen and (min-width:901px){.ds-shell .ds-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media screen and (min-width:551px) and (max-width:900px){.ds-shell .ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:550px){.ds-shell .ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:380px){.ds-shell .ds-kpis{grid-template-columns:minmax(0,1fr)}}
