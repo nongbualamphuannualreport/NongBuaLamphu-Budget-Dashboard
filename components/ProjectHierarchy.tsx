@@ -42,6 +42,7 @@ function Activity({row,nested,open,onClick}:{row:Row;nested:boolean;open:boolean
     </button>
     {open&&<div className="ph-activity-detail">
       <Amounts budget={row.budget} po={row.po} paid={row.disbursed} remaining={row.remaining}/>
+      {Number(row.savings??0)>0&&<p className="ph-note"><b>เงินเหลือจ่ายที่ยืนยันแล้ว:</b> {money(Number(row.savings))} บาท (รวมอยู่ในยอดคงเหลือ)</p>}
       
       {cost&&<section className="ph-costs">
         <div className="ph-costs-head"><h4>รายละเอียดค่าใช้จ่าย</h4></div>
