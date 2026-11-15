@@ -8,6 +8,7 @@ export type DisbursementRow = {
   po: number;
   disbursed: number;
   remaining: number;
+  savings?: number;
   spent?: number;
   surplus?: number;
 };
@@ -16,7 +17,7 @@ export type DisbursementReport = {
   as_of_date: string;
   report_type: 'disbursement';
   source_file: string;
-  totals: { budget: number; po: number; disbursed: number; spent: number; surplus: number; remaining: number };
+  totals: { budget: number; po: number; disbursed: number; spent: number; surplus: number; remaining: number; savings?: number };
   projects: DisbursementRow[];
   activities: DisbursementRow[];
 };
