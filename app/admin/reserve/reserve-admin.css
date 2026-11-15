@@ -199,3 +199,17 @@
 .ra-current-view strong{font-size:18px}
 }
 @media print{.ra-unified-head .ra-head-actions,.ra-current-view{display:none!important}}
+
+
+/* Same mobile top bar as the main admin; do not render duplicate account actions */
+@media screen and (max-width:1100px){
+ .ra-shell:has(.an-mobile-bar){padding-top:calc(84px + env(safe-area-inset-top));}
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head{margin-top:0}
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head h1{font-size:clamp(22px,4.3vw,30px)}
+}
+@media screen and (max-width:600px){
+ .ra-shell:has(.an-mobile-bar){padding-top:calc(80px + env(safe-area-inset-top));}
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head{padding-bottom:13px;margin-bottom:15px}
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head h1{font-size:25px}
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head .ra-head-title>p:last-child{font-size:12px}
+}
