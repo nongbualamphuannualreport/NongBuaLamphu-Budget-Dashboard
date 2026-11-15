@@ -2,11 +2,11 @@
 import {useEffect,useRef,useState} from 'react';
 import type {MonitorActivity} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
-import {X,Landmark,CheckCircle2} from 'lucide-react';
+import {X,CheckCircle2} from 'lucide-react';
 export type ProjectSaving={activity_id:string;amount:number;confirmed_on:string;reference:string;note:string;updated_at:string};
 type Row=MonitorActivity&{cumulative:number;po:number;remaining:number};
 type Props={activity:Row;existing?:ProjectSaving;getToken:()=>Promise<string>;onSaved:()=>Promise<void>;onClose:()=>void;};
-const today=()=>{const d=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());return d;};
+const today=()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(part=>[part.type,part.value]));return p.year+'-'+p.month+'-'+p.day;};
 export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}:Props){
  const [amount,setAmount]=useState(existing?String(existing.amount):'');
  const [date,setDate]=useState(existing?.confirmed_on??today());
