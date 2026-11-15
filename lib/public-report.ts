@@ -62,13 +62,15 @@ export async function getPublicReport(cutoff:string):Promise<PublicReportResult>
  }
  if(!data?.length)return referenceReport(asOf);
  if(asOf<'2026-11-10')return {report:null,preview:false};
- const [entries,poEntries,transfersResult]=await Promise.all([
+ const [entries,poEntries,transfersResult,savingsResult]=await Promise.all([
   readEntries(asOf),readPoEntries(asOf),
-  db.from('monitor_reallocation_transfers').select('activity_id,allocated_on,amount,cancelled_on').lte('allocated_on',asOf).order('allocated_on').limit(1000)
+  db.from('monitor_reallocation_transfers').select('activity_id,allocated_on,amount,cancelled_on').lte('allocated_on',asOf).order('allocated_on').limit(1000),
+  db.from('monitor_project_savings').select('activity_id,amount,confirmed_on').lte('confirmed_on',asOf).limit(1000)
  ]);
  if(transfersResult.error)throw Error('อ่านการจัดสรรเงินโอนเปลี่ยนแปลงไม่สำเร็จ: '+transfersResult.error.message);
+ if(savingsResult.error)throw Error('อ่านเงินเหลือจ่ายจากโครงการไม่สำเร็จ');
  const effective=effectiveActivities(data as MonitorActivity[],
   (transfersResult.data??[]) as Pick<ReallocationTransfer,'activity_id'|'allocated_on'|'amount'|'cancelled_on'>[],asOf);
- const report=buildCurrentReport(effective,entries,asOf,poEntries);
+ const report=buildCurrentReport(effective,entries,asOf,poEntries,(savingsResult.data??[]) as {activity_id:string;amount:number;confirmed_on:string}[]);
  return {report,preview:false};
 }
