@@ -308,3 +308,17 @@
  .mon-csv-actions button{width:100%}
 }
 @media print{.mon-csv-export{display:none!important}}
+
+
+/* Reserve space for fixed mobile navigation; keep the report title separate from controls */
+@media screen and (max-width:1100px){
+ .mon-wrap:not(.mon-login):has(.an-mobile-bar){padding-top:calc(84px + env(safe-area-inset-top));}
+ .mon-wrap:has(.an-mobile-bar) .mon-header{margin-top:0}
+ .mon-wrap:has(.an-mobile-bar) .mon-header h1{font-size:clamp(22px,4.3vw,30px);line-height:1.35}
+}
+@media screen and (max-width:600px){
+ .mon-wrap:not(.mon-login):has(.an-mobile-bar){padding-top:calc(80px + env(safe-area-inset-top));}
+ .mon-wrap:has(.an-mobile-bar) .mon-header{padding-bottom:14px;margin-bottom:16px}
+ .mon-wrap:has(.an-mobile-bar) .mon-header h1{font-size:25px}
+ .mon-wrap:has(.an-mobile-bar) .mon-header>div>p:last-child{font-size:12px;line-height:1.5}
+}
