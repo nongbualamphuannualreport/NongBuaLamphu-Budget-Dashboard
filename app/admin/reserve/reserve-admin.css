@@ -213,3 +213,9 @@
  .ra-shell:has(.an-mobile-bar) .ra-unified-head h1{font-size:25px}
  .ra-shell:has(.an-mobile-bar) .ra-unified-head .ra-head-title>p:last-child{font-size:12px}
 }
+
+
+@media screen and (max-width:600px){
+ .ra-shell:has(.an-mobile-bar) .ra-unified-head .ra-back-public{display:none}
+ .ra-shell:has(.an-mobile-bar) .ra-current-view{display:none}
+}
