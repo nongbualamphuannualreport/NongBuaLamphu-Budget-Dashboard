@@ -322,3 +322,11 @@
  .mon-wrap:has(.an-mobile-bar) .mon-header h1{font-size:25px}
  .mon-wrap:has(.an-mobile-bar) .mon-header>div>p:last-child{font-size:12px;line-height:1.5}
 }
+
+
+/* Keep the first mobile screen focused on navigation and report content */
+@media screen and (max-width:600px){
+ .mon-wrap:has(.an-mobile-bar) .mon-header>div:first-child>a{display:none}
+ .mon-wrap:has(.an-mobile-bar) .mon-current-view{display:none}
+ .mon-wrap:has(.an-mobile-bar) .mon-header .mon-release-label{margin-top:5px}
+}
