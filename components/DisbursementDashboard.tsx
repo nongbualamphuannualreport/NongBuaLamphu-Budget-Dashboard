@@ -88,6 +88,7 @@ export function DisbursementDashboard(){
             <Metric label="ยอดผูกพัน (PO)" value={moneyTH(report.totals.po)} sub="บาท · ยอดผูกพันตามสัญญา"/>
             <Metric label="เบิกจ่ายสะสม" value={moneyTH(report.totals.disbursed)} sub="บาท" tone="blue"/>
             <Metric label="คงเหลือยังไม่เบิกจ่าย" value={moneyTH(report.totals.remaining)} sub="บาท"/>
+            <Metric label="เงินเหลือจ่ายจากโครงการ" value={moneyTH(report.totals.savings??0)} sub="บาท · รวมอยู่ในยอดคงเหลือ"/>
             <Metric label="อัตราการเบิกจ่าย" value={percentTH(report.totals.disbursed,report.totals.budget)+'%'} sub="ของงบประมาณรวม" tone="accent"/>
           </section>
           <div className="ds-analysis-grid">
