@@ -330,3 +330,73 @@
  .mon-wrap:has(.an-mobile-bar) .mon-current-view{display:none}
  .mon-wrap:has(.an-mobile-bar) .mon-header .mon-release-label{margin-top:5px}
 }
+
+
+/* Confirmed savings: separate from unspent budget, with activity cards and accessible editor. */
+.mon-savings-header{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.mon-savings-header h2{margin:0;color:#194b3b}
+.mon-savings-header p{margin:7px 0 0;color:#758d80;font-size:13px}
+.mon-savings-grand-total{padding:15px 20px;border:1px solid #c6e3cf;border-radius:13px;background:#edf8f0;min-width:215px}
+.mon-savings-grand-total span,.mon-savings-grand-total small{display:block;color:#637e6d;font-size:12px}
+.mon-savings-grand-total strong{font-size:28px;color:#197452;display:block;line-height:1.4}
+.mon-savings-search{margin:18px 0 15px;max-width:540px}
+.mon-savings-list{display:grid;gap:12px}
+.mon-saving-card{padding:16px;border:1px solid #e0eae3;border-radius:13px;background:#fff;min-width:0}
+.mon-saving-card-title strong{display:block;color:#234e3d;font-size:15px;line-height:1.6}
+.mon-saving-card-title small{display:block;color:#7b9284;font-size:12px;margin:3px 0}
+.mon-saving-card-numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}
+.mon-saving-card-numbers span{padding:10px 12px;background:#f6faf7;border:1px solid #e4ede6;border-radius:10px;min-width:0}
+.mon-saving-card-numbers small{display:block;color:#748b7d;font-size:11px}
+.mon-saving-card-numbers b{display:block;color:#2d5143;font-size:17px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.mon-saving-card-numbers .mon-saved-amount{background:#eef7ed;border-color:#c6dfce}
+.mon-saving-card-numbers .mon-saved-amount b{color:#166c4f}
+.mon-saving-card-actions{display:flex;justify-content:flex-end}
+.mon-wrap .mon-saving-card-actions button,.mon-wrap .mon-saving-row-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#1b7154!important;border:1px solid #1b7154!important;color:#fff!important;padding:9px 14px!important;border-radius:9px;font-size:13px!important;min-height:40px!important;white-space:normal}
+.mon-saving-dialog{max-width:min(700px,calc(100vw - 24px))}
+.mon-saving-form{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.mon-saving-field{display:flex;flex-direction:column;gap:6px;color:#355748;font-size:13px;font-weight:700;min-width:0}
+.mon-saving-field input,.mon-saving-field textarea{min-height:43px;padding:10px;border:1px solid #ccdcd1;border-radius:9px;max-width:100%;font-family:inherit;font-size:15px}
+.mon-saving-wide{grid-column:span 2}
+.mon-saving-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:13px}
+.mon-saving-summary div{background:#f6faf7;padding:10px 12px;border-radius:9px;border:1px solid #e3eae4}
+.mon-saving-summary span{display:block;color:#738b7d;font-size:11px}
+.mon-saving-summary b{display:block;font-size:18px;color:#244e3e}
+.mon-saving-advice{display:flex;align-items:flex-start;gap:8px;margin:10px 0 18px;border-radius:9px;padding:11px;background:#eaf4ed;color:#356b50;font-size:12px;line-height:1.6}
+.mon-saving-advice svg{flex:none}
+.mon-saving-footer{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:9px;margin-top:18px}
+.mon-saving-footer button{min-height:43px;padding:10px 15px;border-radius:9px}
+.mon-wrap .mon-saving-footer .mon-saving-danger{background:#fff0ee;color:#a33934;border:1px solid #edbcb6;margin-right:auto}
+.mon-wrap .mon-saving-footer .mon-saving-cancel{background:#fff;color:#446854;border:1px solid #bfd5c5}
+@media screen and (max-width:1100px){
+ /* Replace the horizontally scrollable activities table with vertically readable mobile cards. */
+ .mon-admin-content .mon-activity-scroll{overflow:visible!important;width:100%;max-width:100%}
+ .mon-admin-content .mon-activity-table{display:block;min-width:0!important;width:100%;border-collapse:separate}
+ .mon-admin-content .mon-activity-table thead{display:none}
+ .mon-admin-content .mon-activity-table tbody{display:grid;gap:12px}
+ .mon-admin-content .mon-activity-table tr{display:block;border:1px solid #dce8df;border-radius:13px;overflow:hidden;background:white;box-shadow:0 3px 11px #213d2e0c;min-width:0}
+ .mon-admin-content .mon-activity-table tr.mon-major-row{background:#eef6f1;border-color:#caddd0;box-shadow:none}
+ .mon-admin-content .mon-activity-table tr.mon-major-row td{display:block;padding:14px 13px}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td{display:flex;align-items:baseline;justify-content:space-between;gap:15px;text-align:right;padding:9px 13px;border:0!important;min-height:38px;white-space:normal!important;overflow-wrap:anywhere}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:first-child{display:block;text-align:left;background:#f2f8f3;padding:14px 13px;border-bottom:1px solid #dfeae1!important;line-height:1.5}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:first-child b{font-size:14px;color:#245f44}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:first-child small{font-size:12px;margin-top:4px}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:not(:first-child):before{content:attr(data-label);display:block;color:#6c8375;font-size:12px;flex:0 0 43%;text-align:left}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:last-child{display:block;text-align:left;border-top:1px solid #e3eae4!important;padding:13px}
+ .mon-admin-content .mon-activity-table tr:not(.mon-major-row)>td:last-child:before{content:"จัดการ";margin-bottom:10px;font-weight:700}
+ .mon-admin-content .mon-activity-table .mon-row-actions{width:100%;display:flex;gap:8px;flex-wrap:wrap}
+ .mon-admin-content .mon-activity-table .mon-row-actions button{flex:1 1 125px;min-height:43px!important}
+}
+@media screen and (max-width:760px){
+ .mon-savings-header{align-items:stretch}
+ .mon-savings-grand-total{width:100%}
+ .mon-saving-card-numbers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mon-saving-card-numbers b{font-size:15px}
+ .mon-saving-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mon-saving-form{grid-template-columns:minmax(0,1fr)}
+ .mon-saving-wide{grid-column:auto}
+ .mon-saving-card-actions button{width:100%}
+ .mon-saving-footer{flex-wrap:wrap}
+ .mon-saving-footer button{flex:1 1 125px}
+ .mon-wrap .mon-saving-footer .mon-saving-danger{flex:1 1 100%;margin-right:0}
+}
+@media print{.mon-savings-page,.mon-saving-dialog,.mon-saving-card{display:none!important}}
