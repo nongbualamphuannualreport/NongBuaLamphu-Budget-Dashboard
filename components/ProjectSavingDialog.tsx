@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import type {MonitorActivity} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
 import {X,CheckCircle2} from 'lucide-react';
@@ -43,7 +44,7 @@ export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}
    await onSaved();onClose();
   }catch(e){setError(e instanceof Error?e.message:'ไม่สามารถทำรายการได้');}finally{setBusy(false);}
  }
- return <div className="mon-modal-backdrop mon-noprint" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)onClose();}}>
+ return createPortal(<div className="mon-modal-backdrop mon-noprint" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)onClose();}}>
   <div ref={dialog} tabIndex={-1} className="mon-modal-panel mon-saving-dialog" role="dialog" aria-modal="true" aria-labelledby="saving-modal-title">
    <div className="mon-modal-header">
     <div><span className="mon-modal-eyebrow">งบประมาณจังหวัด · ปี 2570</span><h2 id="saving-modal-title">{removeMode?'ยกเลิกเงินเหลือจ่าย':existing?'แก้ไขเงินเหลือจ่าย':'บันทึกเงินเหลือจ่ายจากโครงการ'}</h2><p>{activity.project_code} · {activity.name}</p></div>
@@ -68,5 +69,5 @@ export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}
     </form>
    </div>
   </div>
- </div>;
+ </div>,document.body);
 }
