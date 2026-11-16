@@ -9,12 +9,12 @@ import {coreProject,transferredProject} from '@/lib/reallocation';
 import './admin-pdf-export.css';
 import {paginatePdfProjectDetails,paginateMeasuredPdfDetails,type PdfDetailItem} from '@/lib/pdf-project-pages';
 
-type Row=MonitorActivity & {cumulative:number;period:number;po:number;remaining:number};
+type Row=MonitorActivity & {cumulative:number;period:number;po:number;remaining:number;available:number;saving:number};
 type Report={
  from:string;to:string;asOf:string;rows:Row[];
- total:{budget:number;po:number;disbursed:number;period:number;remaining:number}
+ total:{budget:number;po:number;disbursed:number;period:number;remaining:number;available:number;savings:number}
 };
-type Project={code:string;name:string;budget:number;paid:number;remaining:number};
+type Project={code:string;name:string;budget:number;paid:number;remaining:number;available:number};
 type Props={report:Report;mode:MonitorPeriod;enabled:boolean;entries:MonitorEntry[];transfers:ReallocationTransfer[]};
 
 const thaiDate=(value:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{
@@ -43,8 +43,8 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
  const projects=useMemo<Project[]>(()=>{
   const map=new Map<string,Project>();
   for(const r of report.rows){
-   const prev=map.get(r.project_code)??{code:r.project_code,name:r.project_name,budget:0,paid:0,remaining:0};
-   prev.budget+=Number(r.budget);prev.paid+=Number(r.cumulative);prev.remaining+=Number(r.remaining);
+   const prev=map.get(r.project_code)??{code:r.project_code,name:r.project_name,budget:0,paid:0,remaining:0,available:0};
+   prev.budget+=Number(r.budget);prev.paid+=Number(r.cumulative);prev.remaining+=Number(r.remaining);prev.available+=Number(r.available);
    map.set(r.project_code,prev);
   }
   return [...map.values()];
@@ -163,7 +163,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
     <div className="apdf-date">ข้อมูลเบิกจ่าย ณ {thaiDate(report.asOf)}</div>
     <div className="apdf-metrics">
      <div><span>ผลเบิกจ่ายสะสมสุทธิ</span><b><Money value={report.total.disbursed}/></b><small>บาท</small></div>
-     <div><span>คงเหลือยังไม่เบิกจ่าย</span><b><Money value={report.total.remaining}/></b><small>บาท</small></div>
+     <div><span>คงเหลือที่ใช้ได้</span><b><Money value={report.total.available}/></b><small>บาท · หลังหัก PO และเงินเหลือจ่าย</small></div>
      <div className="apdf-rate"><span>อัตราการเบิกจ่าย</span><b>{pct.toFixed(2)}%</b><small>ของงบประมาณ</small></div>
     </div>
     {periodReductions.length>0&&
@@ -176,7 +176,9 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
           <b>−{fmt(periodReductionAmount)}</b><span>บาท</span>
         </div>
       </div>}
-    {report.total.po>0&&<div className="apdf-po-summary">
+    <div className="apdf-po-summary"><strong>คงเหลือก่อนหัก PO และเงินเหลือจ่าย</strong><b>{fmt(report.total.remaining)} บาท</b></div>
+     {report.total.savings>0&&<div className="apdf-po-summary"><strong>เงินเหลือจ่ายจากโครงการที่ยืนยันแล้ว</strong><b>{fmt(report.total.savings)} บาท</b></div>}
+     {report.total.po>0&&<div className="apdf-po-summary">
       <strong>PO คงค้าง (ยอดผูกพัน ยังไม่เบิกจ่าย)</strong>
       <b>{fmt(report.total.po)} บาท</b>
     </div>}
@@ -207,7 +209,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
       </header>}
       {idx===0&&<div className="apdf-detail-columns">
         <span>โครงการ / กิจกรรมย่อย</span>
-        <div className="apdf-detail-figures"><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือ</span></div>
+        <div className="apdf-detail-figures"><span>งบประมาณ</span><span>เบิกจ่ายสะสม</span><span>คงเหลือที่ใช้ได้</span></div>
       </div>}
       <div className="apdf-detail-list">
         {items.map((item,i)=>{
@@ -219,7 +221,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
             <div className="apdf-detail-figures">
               <b>{fmt(item.project.budget)}</b>
               <b className="apdf-paid">{fmt(item.project.paid)}</b>
-              <b>{fmt(item.project.remaining)}</b>
+              <b>{fmt(projects.find(p=>p.code===item.project.code)?.available??item.project.remaining)}</b>
             </div>
           </section>;
           if(item.kind==='activity')return <div className="apdf-subactivity-line" key={'activity-'+item.row.id}>
@@ -235,7 +237,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
             <div className="apdf-detail-figures">
               <span>{fmt(item.row.budget)}</span>
               <span className="apdf-paid">{fmt(item.row.cumulative)}</span>
-              <span>{fmt(item.row.remaining)}</span>
+              <span>{fmt(report.rows.find(r=>r.id===item.row.id)?.available??item.row.remaining)}</span>
             </div>
           </div>;
           return <div className="apdf-reduction-line" key={'reduction-'+item.row.id}>
@@ -258,7 +260,7 @@ export function AdminPdfExport({report,mode,enabled,entries,transfers}:Props){
         <div className="apdf-detail-figures">
           <b>{fmt(report.total.budget)}</b>
           <b>{fmt(report.total.disbursed)}</b>
-          <b>{fmt(report.total.remaining)}</b>
+          <b>{fmt(report.total.available)}</b>
         </div>
       </div>}
     </PageFrame>)}
