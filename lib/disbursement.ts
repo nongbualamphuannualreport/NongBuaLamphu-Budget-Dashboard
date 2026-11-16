@@ -9,6 +9,7 @@ export type DisbursementRow = {
   disbursed: number;
   remaining: number;
   savings?: number;
+  available?: number;
   spent?: number;
   surplus?: number;
 };
@@ -17,7 +18,7 @@ export type DisbursementReport = {
   as_of_date: string;
   report_type: 'disbursement';
   source_file: string;
-  totals: { budget: number; po: number; disbursed: number; spent: number; surplus: number; remaining: number; savings?: number };
+  totals: { budget: number; po: number; disbursed: number; spent: number; surplus: number; remaining: number; savings?: number; available?: number };
   projects: DisbursementRow[];
   activities: DisbursementRow[];
 };
@@ -39,6 +40,7 @@ export function validateDisbursement(value: unknown): { report: DisbursementRepo
     for (const [i,row] of v[field].entries()) {
       if (!row || typeof row !== 'object') {errors.push(`${field} แถว ${i+1} ไม่ถูกต้อง`);continue;}
       for (const key of ['budget','po','disbursed','remaining']) if (!finite(row[key])) errors.push(`${field} แถว ${i+1} ช่อง ${key} ไม่ถูกต้อง`);
+      if (row.available!==undefined && (!finite(row.available)|| (finite(row.remaining)&&finite(row.po)&&finite(row.savings??0)&&!approx(row.available,row.remaining-row.po-(row.savings??0)))) errors.push(`${field} แถว ${i+1} ยอดคงเหลือที่ใช้ได้ไม่สัมพันธ์กัน`);
       if (field === 'projects' && typeof row.name !== 'string') errors.push(`ชื่อโครงการแถว ${i+1} ไม่ถูกต้อง`);
       if (field === 'activities' && typeof row.activity !== 'string') errors.push(`ชื่อกิจกรรมแถว ${i+1} ไม่ถูกต้อง`);
       if (finite(row.budget) && finite(row.disbursed) && finite(row.remaining) && !approx(row.budget,row.disbursed+row.remaining+(finite(row.surplus)?row.surplus:0))) errors.push(`${field} แถว ${i+1} ยอดคงเหลือไม่สัมพันธ์กับงบและเบิกจ่าย`);
@@ -48,6 +50,7 @@ export function validateDisbursement(value: unknown): { report: DisbursementRepo
   if (!t || typeof t !== 'object') errors.push('ไม่พบยอดรวม');
   else {
     for (const key of ['budget','po','disbursed','spent','surplus','remaining']) if (!finite((t as Record<string,unknown>)[key])) errors.push(`ยอดรวม ${key} ไม่ถูกต้อง`);
+    if ((t as Record<string,unknown>).available!==undefined && !finite((t as Record<string,unknown>).available)) errors.push('ยอดคงเหลือที่ใช้ได้ไม่ถูกต้อง');
     if (errors.length===0) {
       for (const field of ['budget','po','disbursed','remaining'] as const) {
         const sum = (v.projects as DisbursementRow[]).reduce((a,r)=>a+r[field],0);
