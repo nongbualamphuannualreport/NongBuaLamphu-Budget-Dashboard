@@ -4,7 +4,7 @@ import {coreProject} from '@/lib/reallocation';
 
 type Row={
   project_code:string;project_name:string;name:string;agency:string;
-  budget:number;po:number;cumulative:number;period:number;remaining:number;
+  budget:number;po:number;cumulative:number;period:number;remaining:number;available:number;
 };
 type Report={asOf:string;rows:Row[]};
 type Kind='core'|'additional'|'activity';
@@ -22,23 +22,23 @@ export function AdminCsvExport({report,savings,enabled}:{report:Report;savings:{
  const saved=(id:string)=>Number(savings.find(s=>s.activity_id===id)?.amount??0);
  function download(kind:Kind,filename:string){
    if(!enabled)return;
-   const grouped=new Map<string,{code:string;name:string;budget:number;po:number;paid:number;period:number;remaining:number;saving:number}>();
+   const grouped=new Map<string,{code:string;name:string;budget:number;po:number;paid:number;period:number;remaining:number;saving:number;available:number}>();
    for(const row of report.rows){
-     const existing=grouped.get(row.project_code)??{code:row.project_code,name:row.project_name,budget:0,po:0,paid:0,period:0,remaining:0,saving:0};
+     const existing=grouped.get(row.project_code)??{code:row.project_code,name:row.project_name,budget:0,po:0,paid:0,period:0,remaining:0,saving:0,available:0};
      existing.budget+=Number(row.budget);existing.po+=Number(row.po);
      existing.paid+=Number(row.cumulative);existing.period+=Number(row.period);
-     existing.remaining+=Number(row.remaining);existing.saving+=saved((row as Row&{id?:string}).id??'');grouped.set(row.project_code,existing);
+     existing.remaining+=Number(row.remaining);existing.saving+=saved((row as Row&{id?:string}).id??'');existing.available+=Number(row.available);grouped.set(row.project_code,existing);
    }
-   const headers=['รหัสโครงการ','ชื่อโครงการ','กิจกรรม / หน่วยดำเนินการ','งบประมาณ (บาท)','PO คงค้าง (บาท)','เบิกจ่ายสะสม (บาท)','เบิกจ่ายในช่วงที่เลือก (บาท)','คงเหลือยังไม่เบิกจ่าย (บาท)','เงินเหลือจ่ายจากโครงการ (บาท)','อัตราเบิกจ่าย (%)','ข้อมูล ณ'];
+   const headers=['รหัสโครงการ','ชื่อโครงการ','กิจกรรม / หน่วยดำเนินการ','งบประมาณ (บาท)','PO คงค้าง (บาท)','เบิกจ่ายสะสม (บาท)','เบิกจ่ายในช่วงที่เลือก (บาท)','คงเหลือยังไม่เบิกจ่าย (บาท)','เงินเหลือจ่ายจากโครงการ (บาท)','คงเหลือที่ใช้ได้ (บาท)','อัตราเบิกจ่าย (%)','ข้อมูล ณ'];
    let rows:(string|number)[][];
    if(kind==='activity'){
       rows=report.rows.filter(r=>r.project_code!=='RESERVE').map(r=>[
-       r.project_code,r.project_name,r.name+' / '+(r.agency||'ไม่ระบุ'),r.budget,r.po,r.cumulative,r.period,r.remaining,saved((r as Row&{id?:string}).id??''),
+       r.project_code,r.project_name,r.name+' / '+(r.agency||'ไม่ระบุ'),r.budget,r.po,r.cumulative,r.period,r.remaining,saved((r as Row&{id?:string}).id??''),r.available,
        r.budget?Number((r.cumulative/r.budget*100).toFixed(2)):0,report.asOf
       ]);
    }else{
       rows=[...grouped.values()].filter(p=>p.code!=='RESERVE'&&(kind==='core'?coreProject(p.code):!coreProject(p.code)))
-       .map(p=>[p.code,p.name,'',p.budget,p.po,p.paid,p.period,p.remaining,p.saving,p.budget?Number((p.paid/p.budget*100).toFixed(2)):0,report.asOf]);
+       .map(p=>[p.code,p.name,'',p.budget,p.po,p.paid,p.period,p.remaining,p.saving,p.available,p.budget?Number((p.paid/p.budget*100).toFixed(2)):0,report.asOf]);
    }
    const csv='\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\r\n');
    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
