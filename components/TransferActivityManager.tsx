@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import type {MonitorActivity,MonitorEntry} from '@/lib/monitor';
 import type {MonitorPoEntry} from '@/lib/po';
 import {fmt} from '@/lib/monitor';
@@ -79,7 +80,7 @@ export function TransferActivityManager({activity,allocatedOn,entries,poEntries,
      <h4>ประวัติ PO / ยอดผูกพัน</h4>
      {poEntries.length===0?<p>ยังไม่มีรายการ PO</p>:<div className="ra-table-wrap"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>ยอดเคลื่อนไหว PO</th><th>เอกสารอ้างอิง</th></tr></thead><tbody>{[...poEntries].sort((a,b)=>b.po_on.localeCompare(a.po_on)).map(p=><tr key={p.id}><td>{p.po_on}</td><td>{p.kind==='add'?'เพิ่ม PO':p.kind==='pay'?'จ่ายจาก PO':'ลด PO'}</td><td>{p.amount<0?'−':'+'}{fmt(Math.abs(Number(p.amount)))}</td><td>{p.reference||p.note||'—'}</td></tr>)}</tbody></table></div>}
    </div>}
-   {action&&<div className="ra-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAction(null);}}>
+   {action&&createPortal(<div className="ra-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAction(null);}}>
      <div className="ra-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="ra-transfer-title" tabIndex={-1} ref={dialog}>
        <div className="ra-modal-header"><div><span className="ra-modal-kicker">{activity.project_code} · กิจกรรมจากเงินโอนเปลี่ยนแปลง</span><h2 id="ra-transfer-title">{title[action]}</h2><p>{activity.name}</p></div><button type="button" className="ra-modal-close" disabled={busy} aria-label="ปิดหน้าต่าง" onClick={()=>setAction(null)}>×</button></div>
        <div className="ra-modal-body">
@@ -100,6 +101,6 @@ export function TransferActivityManager({activity,allocatedOn,entries,poEntries,
          </form>
        </div>
      </div>
-   </div>}
+   </div>,document.body)}
  </div>;
 }
