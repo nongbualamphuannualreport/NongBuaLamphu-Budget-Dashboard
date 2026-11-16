@@ -400,3 +400,43 @@
  .mon-wrap .mon-saving-footer .mon-saving-danger{flex:1 1 100%;margin-right:0}
 }
 @media print{.mon-savings-page,.mon-saving-dialog,.mon-saving-card{display:none!important}}
+
+
+/* Mobile form stabilization — modals rendered at document.body instead of inside clipped grids. */
+.mon-modal-backdrop{position:fixed!important;inset:0!important;z-index:5000!important;box-sizing:border-box;width:100vw;max-width:100vw;overflow:hidden;isolation:isolate}
+.mon-modal-panel{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;width:min(790px,calc(100vw - 36px));max-width:calc(100vw - 36px);max-height:calc(100dvh - 36px);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 22px 70px #102e273d}
+.mon-modal-panel,.mon-modal-panel *{box-sizing:border-box}
+.mon-modal-panel .mon-modal-header{min-width:0;flex:0 0 auto}
+.mon-modal-panel .mon-modal-header>div{min-width:0;flex:1;overflow-wrap:anywhere}
+.mon-modal-panel .mon-modal-body{flex:1 1 auto;min-height:0;width:100%;max-width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.mon-modal-panel .mon-modal-body form{display:flex;flex-direction:column;min-width:0;width:100%;max-width:100%}
+.mon-modal-panel .mon-master-grid,.mon-modal-panel .mon-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0;max-width:100%;gap:13px}
+.mon-modal-panel .mon-form label,.mon-modal-panel .mon-master-grid label,.mon-modal-panel .mon-selected-activity{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.mon-modal-panel .mon-form label:first-child,.mon-modal-panel .mon-form .mon-wide,.mon-modal-panel .mon-master-grid .mon-wide{grid-column:1 / -1}
+.mon-modal-panel input,.mon-modal-panel select,.mon-modal-panel textarea{min-width:0!important;max-width:100%!important;width:100%!important;box-sizing:border-box;font-size:16px!important}
+.mon-modal-panel .mon-selected-activity{display:grid;gap:5px;background:#f4f8f5;border:1px solid #d5e6d9;border-radius:10px;padding:12px 14px}
+.mon-modal-panel .mon-selected-activity span{font-size:12px;color:#6a8175;font-weight:700}
+.mon-modal-panel .mon-selected-activity strong{display:block;font-size:14px;color:#245541;font-weight:700;line-height:1.55;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
+.mon-modal-panel .mon-selected-activity-help{display:block;margin-top:5px;color:#486b59;font-size:12px;font-weight:500;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.mon-modal-panel .mon-actions.mon-modal-actions{position:sticky;bottom:0;z-index:2;flex:0 0 auto;width:100%;max-width:100%;margin-top:14px;padding:14px 0 max(10px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e2ebe5;flex-wrap:wrap}
+.mon-modal-panel .mon-modal-actions button{min-width:0!important;flex:1 1 155px;min-height:46px!important}
+.mon-modal-panel .mon-modal-actions button[type=submit]{background:#196d54!important;color:#fff!important;border-color:#196d54!important}
+.mon-modal-panel .mon-modal-header .mon-modal-close{flex:0 0 44px}
+@media screen and (max-width:680px){
+ .mon-modal-backdrop{padding:0!important;align-items:stretch;justify-content:stretch}
+ .mon-modal-panel,.mon-wrap .mon-modal-panel{width:100vw!important;max-width:100vw!important;min-width:0!important;height:100dvh!important;max-height:100dvh!important;min-height:0!important;border-radius:0!important;margin:0!important}
+ .mon-modal-panel .mon-modal-header{padding:calc(13px + env(safe-area-inset-top)) 17px 13px}
+ .mon-modal-panel .mon-modal-header h2{font-size:20px!important;line-height:1.35}
+ .mon-modal-panel .mon-modal-header p{font-size:12px;line-height:1.45;margin-top:4px}
+ .mon-modal-panel .mon-modal-eyebrow{font-size:10px}
+ .mon-modal-panel .mon-modal-body{padding:15px 16px calc(16px + env(safe-area-inset-bottom));min-width:0!important}
+ .mon-modal-panel .mon-form,.mon-modal-panel .mon-master-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px!important;max-width:100%}
+ .mon-modal-panel .mon-form label:first-child,.mon-modal-panel .mon-form .mon-wide,.mon-modal-panel .mon-master-grid .mon-wide{grid-column:1!important}
+ .mon-modal-panel .mon-form label,.mon-modal-panel .mon-master-grid label{display:flex;flex-direction:column;gap:6px;margin:0!important;font-size:14px!important}
+ .mon-modal-panel .mon-form input,.mon-modal-panel .mon-form select,.mon-modal-panel .mon-master-grid input,.mon-modal-panel .mon-master-grid select{min-height:46px}
+ .mon-modal-panel .mon-actions.mon-modal-actions{bottom:0!important;display:grid!important;grid-template-columns:minmax(0,1fr);gap:9px!important;margin-top:14px;padding:11px 0 max(12px,env(safe-area-inset-bottom));flex-direction:initial!important}
+ .mon-modal-panel .mon-modal-actions button{width:100%!important;min-height:46px!important}
+ .mon-modal-panel .mon-modal-actions button[type=submit]{order:-1}
+ .mon-modal-panel .mon-modal-header .mon-modal-close{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
+}
+@media print{.mon-modal-backdrop{display:none!important}}
