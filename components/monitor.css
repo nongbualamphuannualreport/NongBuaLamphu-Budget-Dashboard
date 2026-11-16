@@ -440,3 +440,33 @@
  .mon-modal-panel .mon-modal-header .mon-modal-close{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
 }
 @media print{.mon-modal-backdrop{display:none!important}}
+
+
+/* Apply form controls consistently even after dialog is mounted at document.body. */
+.mon-modal-panel input,.mon-modal-panel select,.mon-modal-panel textarea{
+  display:block;border:1px solid #c5d8cd;border-radius:10px;background:#fff;color:#163f31;
+  padding:10px 12px;line-height:1.45;outline:none;box-shadow:none;
+}
+.mon-modal-panel input:focus,.mon-modal-panel select:focus,.mon-modal-panel textarea:focus{
+  border-color:#1c795b;box-shadow:0 0 0 3px #1c795b18;
+}
+.mon-modal-panel button{
+  border:1px solid #cfded5;background:#fff;color:#195941;border-radius:10px;
+  padding:9px 13px;font-family:inherit;font-weight:600;cursor:pointer;
+}
+.mon-modal-panel button:disabled{opacity:.5;cursor:not-allowed}
+.mon-modal-panel button:focus-visible{outline:3px solid #87bd9e;outline-offset:2px}
+.mon-modal-panel .mon-modal-actions button:not([type=submit]){
+  background:#f6faf7!important;color:#345f47!important;border-color:#c7d9cc!important;
+}
+.mon-modal-panel .mon-modal-header .mon-modal-close{background:#fff!important;color:#426854!important}
+.mon-modal-panel .mon-saving-footer button[type=submit]{
+  background:#196d54!important;color:#fff!important;border-color:#196d54!important;
+}
+.mon-modal-panel .mon-saving-footer .mon-saving-danger{
+  background:#fff0ee!important;color:#a33934!important;border-color:#edbcb6!important;
+}
+@media screen and (max-width:680px){
+ .mon-modal-panel .mon-modal-body form{width:100%;min-width:0}
+ .mon-modal-panel .mon-selected-activity{min-width:0}
+}
