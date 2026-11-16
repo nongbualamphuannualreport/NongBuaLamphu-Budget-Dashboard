@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useMemo,useRef,useState,type ReactNode,type KeyboardEvent} from 'react';
+import {createPortal} from 'react-dom';
 import Link from 'next/link';
 import {Plus,Search,X,PiggyBank} from 'lucide-react';
 import {createClient} from '@supabase/supabase-js';
@@ -31,12 +32,12 @@ function AdminModal({title,subtitle,children,onClose,busy}:{title:string;subtitl
    if(event.shiftKey&&document.activeElement===all[0]){event.preventDefault();all[all.length-1].focus();}
    else if(!event.shiftKey&&document.activeElement===all[all.length-1]){event.preventDefault();all[0].focus();}
  }
- return <div className="mon-modal-backdrop mon-noprint" onKeyDown={keys}>
+ return createPortal(<div className="mon-modal-backdrop mon-noprint" onKeyDown={keys} onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)onClose();}}>
    <div ref={ref} tabIndex={-1} className="mon-modal-panel" role="dialog" aria-modal="true" aria-labelledby="mon-modal-title" aria-describedby={subtitle?'mon-modal-description':undefined}>
      <div className="mon-modal-header"><div><span className="mon-modal-eyebrow">ระบบจัดการข้อมูล · ปีงบประมาณ 2570</span><h2 id="mon-modal-title">{title}</h2>{subtitle&&<p id="mon-modal-description">{subtitle}</p>}</div><button type="button" className="mon-modal-close" aria-label="ปิดหน้าต่าง" onClick={onClose} disabled={busy}>×</button></div>
      <div className="mon-modal-body">{children}</div>
    </div>
- </div>;
+ </div>,document.body);
 }
 export function MonitorAdmin(){
  const client=useMemo(()=>{const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;return url&&key?createClient(url,key):null;},[]);
@@ -217,9 +218,7 @@ export function MonitorAdmin(){
     {modalError&&<div className="mon-error" role="alert">{modalError}</div>}
     <form onSubmit={event=>{event.preventDefault();if(poKind==='pay'&&!window.confirm('ยืนยันจ่ายเงินจาก PO? ระบบจะลด PO และเพิ่มยอดเบิกจ่ายเท่ากัน'))return;void submitPo();}}>
       <div className="mon-master-grid">
-        <label className="mon-wide">กิจกรรมย่อย
-          <select value={poActivityId} disabled><option value={poActivityId}>{activities.find(a=>a.id===poActivityId)?.name??poActivityId}</option></select>
-        </label>
+        <div className="mon-wide mon-selected-activity" aria-label="กิจกรรมย่อยที่เลือก"><span>กิจกรรมย่อย</span><strong>{activities.find(a=>a.id===poActivityId)?.name??poActivityId}</strong></div>
         <label>วันที่รายการ <input type="date" min="2026-11-10" max="2027-09-30" required value={poDate} onChange={event=>setPoDate(event.target.value)}/></label>
         <label>จำนวนเงิน (บาท) <input type="number" min="0.01" step="0.01" required value={poAmount} onChange={event=>setPoAmount(event.target.value)}/></label>
         <label className="mon-wide">เลขที่ PO / สัญญา / เอกสารอ้างอิง
@@ -242,7 +241,7 @@ export function MonitorAdmin(){
    {entryVisible&&<AdminModal title={entryId?'แก้ไขรายการเบิกจ่าย':entryKind==='reduction'?'ลดยอดเบิกจ่าย':'บันทึกผลเบิกจ่ายครั้งใหม่'} subtitle="บันทึกยอดเบิกจ่ายที่มีหลักฐานยืนยันแล้ว ตามวันที่เบิกจ่ายจริง ระบบคำนวณยอดสะสมและคงเหลือให้" busy={busy} onClose={()=>setEntryVisible(false)}>
     {modalError&&<div className="mon-error" role="alert">{modalError}</div>}
     <form onSubmit={e=>{e.preventDefault();void mutate({action:'save-entry',id:entryId||undefined,activity_id:activityId,paid_on:paidOn,amount:Number(amount),kind:entryKind,reference,note});}}>
-      <div className="mon-form"><label>ประเภทรายการ<select value={entryKind} onChange={e=>setEntryKind(e.target.value as 'disbursement'|'reduction')}><option value="disbursement">เบิกจ่ายเพิ่ม</option><option value="reduction">ลดยอดเบิกจ่าย</option></select></label><label>กิจกรรมย่อย<select value={activityId} onChange={e=>setActivityId(e.target.value)} required><option value="">เลือกกิจกรรม</option>{activities.filter(a=>a.project_code!=='RESERVE').map(a=><option value={a.id} key={a.id}>{a.project_code} · {a.name.slice(0,110)}</option>)}</select></label><label>{entryKind==='reduction'?'วันที่ลดยอดเบิกจ่าย':'วันที่เบิกจ่าย'}<input type="date" value={paidOn} min="2026-11-10" max="2027-09-30" onChange={e=>setPaidOn(e.target.value)} required/></label><label>{entryKind==='reduction'?'จำนวนเงินที่ลดยอด (บาท)':'จำนวนเงินที่เบิกเพิ่ม (บาท)'}<input type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="เช่น 25000"/></label><label>เอกสารอ้างอิง<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="เลขที่ฎีกา / หนังสือ"/></label><label className="mon-wide">หมายเหตุ<input value={note} onChange={e=>setNote(e.target.value)} placeholder={entryKind==='reduction'?'ระบุเหตุผลและหลักฐานการลดยอด':'รายละเอียดการเบิกจ่าย'}/></label></div>
+      <div className="mon-form"><label>ประเภทรายการ<select value={entryKind} onChange={e=>setEntryKind(e.target.value as 'disbursement'|'reduction')}><option value="disbursement">เบิกจ่ายเพิ่ม</option><option value="reduction">ลดยอดเบิกจ่าย</option></select></label><label>กิจกรรมย่อย<select value={activityId} onChange={e=>setActivityId(e.target.value)} required><option value="">เลือกกิจกรรม</option>{activities.filter(a=>a.project_code!=='RESERVE').map(a=><option value={a.id} key={a.id}>{a.project_code} · {a.name.slice(0,80)}</option>)}</select>{activityId&&<small className="mon-selected-activity-help">{activities.find(a=>a.id===activityId)?.name}</small>}</label><label>{entryKind==='reduction'?'วันที่ลดยอดเบิกจ่าย':'วันที่เบิกจ่าย'}<input type="date" value={paidOn} min="2026-11-10" max="2027-09-30" onChange={e=>setPaidOn(e.target.value)} required/></label><label>{entryKind==='reduction'?'จำนวนเงินที่ลดยอด (บาท)':'จำนวนเงินที่เบิกเพิ่ม (บาท)'}<input type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required placeholder="เช่น 25000"/></label><label>เอกสารอ้างอิง<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="เลขที่ฎีกา / หนังสือ"/></label><label className="mon-wide">หมายเหตุ<input value={note} onChange={e=>setNote(e.target.value)} placeholder={entryKind==='reduction'?'ระบุเหตุผลและหลักฐานการลดยอด':'รายละเอียดการเบิกจ่าย'}/></label></div>
       <div className="mon-actions mon-modal-actions"><button type="submit" disabled={busy||!activityId||(entryKind==='reduction'&&!note.trim()&&!reference.trim())}>{busy?'กำลังบันทึก...':entryId?'บันทึกการแก้ไข':entryKind==='reduction'?'ยืนยันลดยอดเบิกจ่าย':'เพิ่มรายการเบิกจ่าย'}</button><button type="button" disabled={busy} onClick={()=>setEntryVisible(false)}>ยกเลิก</button></div>
     </form>
   </AdminModal>}
