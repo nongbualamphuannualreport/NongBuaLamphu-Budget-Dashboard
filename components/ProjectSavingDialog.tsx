@@ -5,7 +5,7 @@ import type {MonitorActivity} from '@/lib/monitor';
 import {fmt} from '@/lib/monitor';
 import {X,CheckCircle2} from 'lucide-react';
 export type ProjectSaving={activity_id:string;amount:number;confirmed_on:string;reference:string;note:string;updated_at:string};
-type Row=MonitorActivity&{cumulative:number;po:number;remaining:number};
+type Row=MonitorActivity&{cumulative:number;po:number;remaining:number;available:number;saving:number};
 type Props={activity:Row;existing?:ProjectSaving;getToken:()=>Promise<string>;onSaved:()=>Promise<void>;onClose:()=>void;};
 const today=()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(part=>[part.type,part.value]));return p.year+'-'+p.month+'-'+p.day;};
 export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}:Props){
@@ -17,7 +17,8 @@ export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}
  const [reason,setReason]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const dialog=useRef<HTMLDivElement>(null);
- const available=Math.round((activity.budget-activity.cumulative-activity.po)*100)/100;
+ const maxSaving=Math.round((activity.budget-activity.cumulative-activity.po)*100)/100;
+ const usable=Math.round((maxSaving-Number(existing?.amount??0))*100)/100;
  useEffect(()=>{
   const before=document.body.style.overflow;document.body.style.overflow='hidden';
   const prior=document.activeElement instanceof HTMLElement?document.activeElement:null;
@@ -51,12 +52,12 @@ export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}
     <button type="button" className="mon-modal-close" disabled={busy} onClick={onClose} aria-label="ปิดหน้าต่าง"><X size={22}/></button>
    </div>
    <div className="mon-modal-body">
-    <div className="mon-saving-summary"><div><span>งบประมาณกิจกรรม</span><b>{fmt(activity.budget)}</b></div><div><span>เบิกจ่ายแล้ว</span><b>{fmt(activity.cumulative)}</b></div><div><span>PO คงค้าง</span><b>{fmt(activity.po)}</b></div><div><span>วงเงินที่ยังไม่ติดภาระ</span><b>{fmt(available)}</b></div></div>
+    <div className="mon-saving-summary"><div><span>งบประมาณกิจกรรม</span><b>{fmt(activity.budget)}</b></div><div><span>เบิกจ่ายแล้ว</span><b>{fmt(activity.cumulative)}</b></div><div><span>PO คงค้าง</span><b>{fmt(activity.po)}</b></div><div><span>คงเหลือที่ใช้ได้</span><b>{fmt(usable)}</b></div></div>
     <p className="mon-saving-advice"><CheckCircle2 size={17}/> เงินเหลือจ่ายเป็นส่วนหนึ่งของเงินที่ยังไม่เบิกจ่าย ไม่ใช่งบประมาณที่ได้รับเพิ่ม และไม่โอนให้โครงการอื่นโดยอัตโนมัติ</p>
     {error&&<p className="mon-error" role="alert">{error}</p>}
     <form onSubmit={submit}>
      {removeMode?<label className="mon-saving-field">เหตุผลการยกเลิกรายการ<textarea required minLength={8} maxLength={1000} rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="ระบุเหตุผลการยกเลิกตามหลักฐาน"/></label>:<div className="mon-saving-form">
-      <label className="mon-saving-field">จำนวนเงินเหลือจ่าย (บาท)<input type="number" min="0.01" max={Math.max(0,available)} step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)} placeholder="เช่น 20000"/></label>
+      <label className="mon-saving-field">จำนวนเงินเหลือจ่าย (บาท)<input type="number" min="0.01" max={Math.max(0,maxSaving)} step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)} placeholder="เช่น 20000"/></label>
       <label className="mon-saving-field">วันที่ยืนยัน<input type="date" required min="2026-11-10" max="2027-09-30" value={date} onChange={e=>setDate(e.target.value)}/></label>
       <label className="mon-saving-field mon-saving-wide">เลขที่เอกสารอ้างอิง<input required maxLength={300} value={reference} onChange={e=>setReference(e.target.value)} placeholder="เลขที่หนังสือหรือหลักฐานยืนยันเงินเหลือจ่าย"/></label>
       <label className="mon-saving-field mon-saving-wide">หมายเหตุ (ถ้ามี)<textarea rows={3} maxLength={1000} value={note} onChange={e=>setNote(e.target.value)} placeholder="รายละเอียดการดำเนินโครงการ"/></label>
@@ -64,7 +65,7 @@ export function ProjectSavingDialog({activity,existing,getToken,onSaved,onClose}
      <div className="mon-saving-footer">
       {existing&&!removeMode&&<button className="mon-saving-danger" type="button" disabled={busy} onClick={()=>setRemoveMode(true)}>ยกเลิกรายการ</button>}
       <button type="button" className="mon-saving-cancel" disabled={busy} onClick={()=>removeMode?setRemoveMode(false):onClose()}>{removeMode?'กลับ':'ปิด'}</button>
-      <button type="submit" disabled={busy||(!removeMode&&(!amount||!reference.trim()||Number(amount)>available))||(removeMode&&reason.trim().length<8)}>{busy?'กำลังบันทึก...':removeMode?'ยืนยันการยกเลิก':'บันทึกเงินเหลือจ่าย'}</button>
+      <button type="submit" disabled={busy||(!removeMode&&(!amount||!reference.trim()||Number(amount)>maxSaving))||(removeMode&&reason.trim().length<8)}>{busy?'กำลังบันทึก...':removeMode?'ยืนยันการยกเลิก':'บันทึกเงินเหลือจ่าย'}</button>
      </div>
     </form>
    </div>
