@@ -37,16 +37,18 @@ export function buildCurrentReport(activities:MonitorActivity[],entries:Pick<Mon
   if(outstanding<-.005||outstanding+paid>budget+.005)throw Error('ยอด PO และเบิกจ่ายรวมกันเกินวงเงินกิจกรรม: '+a.id);
   const remaining=cents(budget-paid);
   const saving=cents(savingsAmounts.get(a.id)??0);
-  if(saving>cents(budget-paid-outstanding)+.005)throw Error('เงินเหลือจ่ายที่ยืนยันเกินวงเงินกิจกรรม: '+a.id);
+  const available=cents(remaining-outstanding-saving);
+  if(available<-.005)throw Error('เงินเหลือจ่ายที่ยืนยันเกินวงเงินกิจกรรม: '+a.id);
   if(a.project_code!=='RESERVE'){
-   details.push({code:a.id,project_code:a.project_code,activity:a.name,agency:a.agency,budget,po:outstanding,disbursed:paid,remaining,savings:saving,source_row:a.source_row??undefined} as DisbursementRow);
+   details.push({code:a.id,project_code:a.project_code,activity:a.name,agency:a.agency,budget,po:outstanding,disbursed:paid,remaining,savings:saving,available,source_row:a.source_row??undefined} as DisbursementRow);
   }
-  const p=ps.get(a.project_code)??{code:a.project_code,name:a.project_name,budget:0,po:0,disbursed:0,remaining:0,savings:0};
+  const p=ps.get(a.project_code)??{code:a.project_code,name:a.project_name,budget:0,po:0,disbursed:0,remaining:0,savings:0,available:0};
   p.budget=cents(p.budget+budget);
   p.disbursed=cents(p.disbursed+paid);
   p.po=cents(p.po+outstanding);
   p.remaining=cents(p.remaining+remaining);
   p.savings=cents(Number(p.savings??0)+saving);
+  p.available=cents(Number(p.available??0)+available);
   ps.set(a.project_code,p);
  }
  for(const activityId of poTotals.keys())if(!seen.has(activityId))throw Error('พบรายการ PO ที่ไม่พบกิจกรรม: '+activityId);
@@ -57,11 +59,13 @@ export function buildCurrentReport(activities:MonitorActivity[],entries:Pick<Mon
  const po=cents(projects.reduce((sum,p)=>sum+p.po,0));
  const remaining=cents(projects.reduce((sum,p)=>sum+p.remaining,0));
  const confirmedSavings=cents(projects.reduce((sum,p)=>sum+Number(p.savings??0),0));
+ const available=cents(projects.reduce((sum,p)=>sum+Number(p.available??0),0));
+ if(Math.abs(cents(remaining-po-confirmedSavings)-available)>.01)throw Error('ยอดคงเหลือใช้ได้ไม่สัมพันธ์กับผลเบิกจ่ายและเงินเหลือจ่าย');
  if(Math.abs(cents(budget-disbursed)-remaining)>.01)throw Error('งบประมาณและยอดคงเหลือไม่สัมพันธ์กัน');
  return {
   fiscal_year:2570,as_of_date:asOf,report_type:'disbursement',
   source_file:'ข้อมูลจากระบบบันทึกผลการเบิกจ่ายรายกิจกรรม',
-  totals:{budget,po,disbursed,spent:disbursed,surplus:0,remaining,savings:confirmedSavings},
+  totals:{budget,po,disbursed,spent:disbursed,surplus:0,remaining,savings:confirmedSavings,available},
   projects,activities:details
  };
 }
