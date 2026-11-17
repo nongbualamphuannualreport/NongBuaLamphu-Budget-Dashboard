@@ -4,20 +4,19 @@ import {isConfigured,serverDb} from '@/lib/supabase';
 import type {ReallocationTransfer} from '@/lib/reallocation';
 import {fmt} from '@/lib/monitor';
 import './reserve.css';
-import {PublicReserveShell} from '@/components/PublicReserveShell';
 export const dynamic='force-dynamic';
 const thai=(s:string)=>new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(s+'T12:00:00+07:00'));
 export default async function ReservePublicPage(){
- const data=await getPublicReport('9999-12-31');
+ // The main report and transfer details are independent; fetch them together.
+ const [data,transferResult]=await Promise.all([
+  getPublicReport('9999-12-31'),
+  isConfigured()
+   ?serverDb().from('monitor_reallocation_transfers').select('*').order('allocated_on',{ascending:false}).limit(1000)
+   :Promise.resolve({data:[] as ReallocationTransfer[],error:null})
+ ]);
  const report=data.report;
- let transfers:ReallocationTransfer[]=[];
- let error='';
- if(isConfigured()){
-  const db=serverDb();
-  const r=await db.from('monitor_reallocation_transfers').select('*').order('allocated_on',{ascending:false}).limit(1000);
-  if(r.error)error='ไม่สามารถอ่านรายละเอียดการโอนเปลี่ยนแปลงได้';
-  else transfers=(r.data??[]) as ReallocationTransfer[];
- }
+ const transfers=(transferResult.data??[]) as ReallocationTransfer[];
+ const error=transferResult.error?'ไม่สามารถอ่านรายละเอียดการโอนเปลี่ยนแปลงได้':'';
  const asOf=report?.as_of_date??'2026-11-13';
  const active=transfers.filter(t=>t.allocated_on<=asOf&&(!t.cancelled_on||t.cancelled_on>asOf));
  const allocated=active.reduce((n,t)=>n+Number(t.amount),0);
@@ -30,7 +29,7 @@ export default async function ReservePublicPage(){
   po:report?.projects.find(p=>p.code===code)?.po??0,
   details:active.filter(t=>t.project_code===code)
  }));
- return <PublicReserveShell><div className="rv-wrap">
+ return <div className="rv-wrap">
   <header className="rv-top"><div><Link href="/">← กลับหน้าภาพรวมงบประมาณ</Link><h1>เงินคงเหลือจากการโอนเปลี่ยนแปลง</h1>
   <p>ข้อมูลการจัดสรรเงินและโครงการเพิ่มเติม · จังหวัดหนองบัวลำภู ปีงบประมาณ พ.ศ. 2570</p></div><Link href="/admin/reserve">สำหรับเจ้าหน้าที่</Link></header>
   {error&&<p role="alert">{error}</p>}
@@ -48,5 +47,5 @@ export default async function ReservePublicPage(){
     )}
   </section>
   <p className="rv-note">ยอดเงินที่จัดสรรให้โครงการแล้วรวมอยู่ในงบประมาณจังหวัด ไม่ใช่งบประมาณเพิ่มเติม · ข้อมูล ณ {thai(asOf)}</p>
- </div></PublicReserveShell>;
+ </div>;
 }
