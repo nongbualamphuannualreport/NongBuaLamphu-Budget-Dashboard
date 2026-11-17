@@ -51,3 +51,12 @@
  .ds-shell-main .rv-project{display:block}
  .ds-shell-main .rv-project>b{display:block;text-align:left;margin-top:10px}
 }
+
+
+/* Reserve route loading: immediate feedback without layout jumps. */
+.rv-loading{min-height:50vh}
+.rv-loading-number,.rv-loading-line{height:26px;width:68%;max-width:240px;border-radius:8px;margin-top:12px;background:linear-gradient(95deg,#eaf1ed,#dbeae1,#eaf1ed);background-size:200% 100%;animation:rv-pulse 1.5s ease-in-out infinite}
+.rv-loading-line{max-width:none;height:17px;width:85%;margin:18px 0}
+.rv-loading-line.short{width:55%}
+@keyframes rv-pulse{0%{background-position:100% 50%}100%{background-position:-100% 50%}}
+@media(prefers-reduced-motion:reduce){.rv-loading-number,.rv-loading-line{animation:none}}
